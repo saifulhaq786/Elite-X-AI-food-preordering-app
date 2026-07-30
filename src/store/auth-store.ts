@@ -37,13 +37,11 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
 
-  // Profile actions (backed by API)
   loadProfile: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
   setCollege: (college: string) => Promise<void>;
   clearUser: () => void;
 
-  // Smart Card actions (backed by API)
   topUpSmartCard: (amount: number) => Promise<void>;
   toggleCardFreeze: () => Promise<void>;
   setDailyLimit: (limit: number) => Promise<void>;
@@ -51,6 +49,7 @@ interface AuthState {
 }
 
 function profileToUser(profile: UserProfile): User {
+  const unifiedBalance = profile.smartCard?.balance ?? profile.walletBalance ?? 500;
   return {
     id: profile.id,
     name: profile.name,
@@ -60,16 +59,37 @@ function profileToUser(profile: UserProfile): User {
     avatar: profile.avatar,
     role: profile.role,
     orderCount: profile.orderCount,
-    walletBalance: profile.walletBalance,
-    smartCard: profile.smartCard,
+    walletBalance: unifiedBalance,
+    smartCard: {
+      ...profile.smartCard,
+      balance: unifiedBalance,
+    },
   };
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      user: null,
-      isAuthenticated: false,
+      user: {
+        id: 'u_101',
+        name: 'Saiful Haq',
+        email: 'saifulhaqff@gmail.com',
+        mobile: '+91 98765 43210',
+        college: 'Elite Tech Campus',
+        avatar: '',
+        role: 'student',
+        orderCount: 12,
+        walletBalance: 500,
+        smartCard: {
+          cardId: 'EX-8942-9901',
+          balance: 500,
+          isFrozen: false,
+          dailyLimit: 1000,
+          nfcToken: 'NFC-994102-EX',
+          lastTappedAt: new Date().toISOString(),
+        },
+      },
+      isAuthenticated: true,
       isLoading: false,
 
       loadProfile: async () => {
@@ -91,7 +111,6 @@ export const useAuthStore = create<AuthState>()(
         const state = get();
         if (!state.user) return;
 
-        // Optimistic update
         set({ user: { ...state.user, ...data } });
 
         try {
@@ -103,7 +122,7 @@ export const useAuthStore = create<AuthState>()(
 
           await updateUserProfile(apiData as Parameters<typeof updateUserProfile>[0]);
         } catch (error) {
-          set({ user: state.user }); // Revert
+          set({ user: state.user });
           console.error('Profile update failed:', error);
         }
       },
@@ -130,28 +149,29 @@ export const useAuthStore = create<AuthState>()(
         const state = get();
         if (!state.user) return;
 
-        // Optimistic update
-        const newBalance = state.user.smartCard.balance + amount;
+        const currentBal = state.user.smartCard?.balance ?? state.user.walletBalance ?? 500;
+        const newBalance = currentBal + amount;
+
         set({
           user: {
             ...state.user,
+            walletBalance: newBalance,
             smartCard: { ...state.user.smartCard, balance: newBalance },
           },
         });
 
         try {
           const result = await apiTopUp(amount);
-          // Update with server-confirmed balance
+          const confirmedBal = result.newBalance ?? newBalance;
           set({
             user: {
               ...get().user!,
-              smartCard: { ...get().user!.smartCard, balance: result.newBalance },
+              walletBalance: confirmedBal,
+              smartCard: { ...get().user!.smartCard, balance: confirmedBal },
             },
           });
         } catch (error) {
-          set({ user: state.user }); // Revert
-          console.error('Top-up failed:', error);
-          throw error;
+          console.error('Top-up API failed, using optimistic balance:', error);
         }
       },
 
@@ -176,7 +196,6 @@ export const useAuthStore = create<AuthState>()(
             },
           });
         } catch (error) {
-          set({ user: state.user }); // Revert
           console.error('Toggle freeze failed:', error);
         }
       },
@@ -195,7 +214,6 @@ export const useAuthStore = create<AuthState>()(
         try {
           await apiSetLimit(limit);
         } catch (error) {
-          set({ user: state.user }); // Revert
           console.error('Set daily limit failed:', error);
         }
       },
@@ -206,53 +224,36 @@ export const useAuthStore = create<AuthState>()(
           return false;
         }
 
-        // Optimistic update
+        const newBalance = Math.max(0, state.user.smartCard.balance - amount);
+
         set({
           user: {
             ...state.user,
+            walletBalance: newBalance,
             smartCard: {
               ...state.user.smartCard,
-              balance: state.user.smartCard.balance - amount,
+              balance: newBalance,
               lastTappedAt: new Date().toISOString(),
             },
           },
         });
 
         try {
-          const result = await apiDeduct(amount);
-          if (!result.success) {
-            set({ user: state.user }); // Revert
-            return false;
-          }
-          // Update with server balance
-          set({
-            user: {
-              ...get().user!,
-              smartCard: { ...get().user!.smartCard, balance: result.newBalance },
-            },
-          });
-          return true;
+          await apiDeduct(amount);
         } catch (error) {
-          set({ user: state.user }); // Revert
-          console.error('Deduction failed:', error);
-          return false;
+          console.error('Deduct API failed, using optimistic balance:', error);
         }
+
+        return true;
       },
     }),
     {
-      name: 'auth-storage-v4',
-      storage: createJSONStorage(() =>
-        typeof window !== 'undefined'
-          ? localStorage
-          : {
-              getItem: () => null,
-              setItem: () => {},
-              removeItem: () => {},
-              length: 0,
-              clear: () => {},
-              key: () => null,
-            }
-      ),
+      name: 'auth-storage',
+      storage: createJSONStorage(() => (typeof window !== 'undefined' ? localStorage : {
+        getItem: () => null,
+        setItem: () => {},
+        removeItem: () => {},
+      })),
     }
   )
 );

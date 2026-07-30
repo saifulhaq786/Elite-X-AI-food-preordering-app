@@ -12,12 +12,12 @@ export default function StudentWalletPage() {
   const [topUpModal, setTopUpModal] = useState(false);
   const [amount, setAmount] = useState('200');
 
-  const card = user?.smartCard || { cardId: 'CHOW-8942-9901', balance: 500, status: 'Active' };
-  const walletBalance = user?.walletBalance ?? 250;
+  const card = user?.smartCard || { cardId: 'EX-8942-9901', balance: 500, status: 'Active' };
+  const unifiedBalance = card.balance;
 
   const transactions = [
     { id: '1', title: 'Top-up via UPI / Card', date: 'Today, 10:30 AM', amount: 200, type: 'credit' },
-    { id: '2', title: 'Pre-order Tasty Times #ORD8829', date: 'Today, 12:15 PM', amount: 210, type: 'debit' },
+    { id: '2', title: 'Pre-order Campus Kitchen #CK8829', date: 'Today, 12:15 PM', amount: 210, type: 'debit' },
     { id: '3', title: 'Offline Smart Tap - Canteen Stall 1', date: 'Yesterday, 01:20 PM', amount: 90, type: 'debit' },
     { id: '4', title: 'Smart Card Promo Bonus', date: '25 Jan 2026', amount: 50, type: 'credit' },
   ];
@@ -47,26 +47,72 @@ export default function StudentWalletPage() {
         padding: '16px 20px',
         display: 'flex',
         alignItems: 'center',
-        gap: '16px',
+        justifyContent: 'space-between',
         backgroundColor: 'var(--bg-surface)',
         borderBottom: '1px solid var(--border-light)',
         boxShadow: 'var(--shadow-sm)'
       }}>
-        <button onClick={() => router.back()} style={{
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border-medium)',
-          color: 'var(--text-primary)',
-          display: 'flex',
-          padding: '8px',
-          borderRadius: '50%',
-          cursor: 'pointer'
-        }}>
-          <ArrowLeft size={20} />
-        </button>
-        <h1 style={{ fontSize: '18px', fontWeight: '700', margin: 0, color: 'var(--text-primary)' }}>Campus Wallet & Card</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button onClick={() => router.back()} style={{
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-medium)',
+            color: 'var(--text-primary)',
+            display: 'flex',
+            padding: '8px',
+            borderRadius: '50%',
+            cursor: 'pointer'
+          }}>
+            <ArrowLeft size={20} />
+          </button>
+          <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>Unified Campus Balance</h1>
+        </div>
+
+        <span style={{ fontSize: '11px', backgroundColor: 'var(--primary)', color: '#FFF', fontWeight: '800', padding: '4px 10px', borderRadius: '8px' }}>
+          Linked Balance
+        </span>
       </header>
 
       <main style={{ padding: '20px' }}>
+        {/* Linked Navigation Tabs */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+          <button
+            onClick={() => router.push('/smart-card')}
+            style={{
+              padding: '12px',
+              borderRadius: '14px',
+              border: '1px solid var(--border-light)',
+              backgroundColor: 'var(--bg-surface)',
+              color: 'var(--text-secondary)',
+              fontWeight: '700',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+            }}
+          >
+            <Cpu size={16} /> 💳 Smart Card
+          </button>
+          <button
+            style={{
+              padding: '12px',
+              borderRadius: '14px',
+              border: '2px solid var(--primary)',
+              backgroundColor: 'var(--primary)',
+              color: '#FFF',
+              fontWeight: '800',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+            }}
+          >
+            👛 Campus Wallet
+          </button>
+        </div>
         {/* Smart Tap Card Banner Card */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -114,7 +160,7 @@ export default function StudentWalletPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <p style={{ margin: '0 0 4px', fontSize: '12px', color: 'var(--text-secondary)' }}>App Online Wallet</p>
-              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)' }}>₹{walletBalance.toFixed(2)}</h3>
+              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)' }}>₹{unifiedBalance.toFixed(2)}</h3>
             </div>
             <button
               onClick={() => setTopUpModal(true)}

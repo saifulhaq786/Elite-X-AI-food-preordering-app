@@ -219,3 +219,36 @@ body {
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
+
+/* Vendor Dashboard Sidebar Overlaying Fix */
+@media (min-width: 768px) {
+  .desktop-sidebar {
+    display: block !important;
+    width: 260px !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    z-index: 30 !important;
+  }
+  .dashboard-main-content {
+    margin-left: 260px !important;
+    width: calc(100% - 260px) !important;
+  }
+  .mobile-menu-btn {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .desktop-sidebar {
+    display: none !important;
+  }
+  .dashboard-main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+}

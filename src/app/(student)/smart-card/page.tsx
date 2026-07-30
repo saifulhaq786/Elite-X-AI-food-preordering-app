@@ -136,6 +136,47 @@ export default function SmartCardPage() {
           )}
         </AnimatePresence>
 
+        {/* Linked Navigation Tabs */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+          <button
+            style={{
+              padding: '12px',
+              borderRadius: '14px',
+              border: '2px solid var(--primary)',
+              backgroundColor: 'var(--primary)',
+              color: '#FFF',
+              fontWeight: '800',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+            }}
+          >
+            <Cpu size={16} /> 💳 Smart Card
+          </button>
+          <button
+            onClick={() => router.push('/wallet')}
+            style={{
+              padding: '12px',
+              borderRadius: '14px',
+              border: '1px solid var(--border-light)',
+              backgroundColor: 'var(--bg-surface)',
+              color: 'var(--text-secondary)',
+              fontWeight: '700',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+            }}
+          >
+            👛 Campus Wallet
+          </button>
+        </div>
+
         {/* 3D Swiggy Metallic Smart Card */}
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
