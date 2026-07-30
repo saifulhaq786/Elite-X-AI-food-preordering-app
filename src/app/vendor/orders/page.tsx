@@ -240,51 +240,78 @@ export default function VendorOrdersPage() {
                   ))}
                 </div>
 
-                {/* Status Action Buttons */}
-                <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--border-light)', paddingTop: '0.75rem', flexWrap: 'wrap' }}>
+                {/* Sequential Status Action Buttons */}
+                <div style={{ display: 'flex', gap: '0.75rem', borderTop: '1px solid var(--border-light)', paddingTop: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
                   {order.status === 'placed' && (
-                    <button
-                      onClick={() => handleUpdateStatus(order.id, 'accepted')}
-                      style={{ flex: 1, backgroundColor: 'var(--primary)', color: 'white', border: 'none', padding: '0.65rem', borderRadius: '0.5rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
-                    >
-                      Accept Order
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleUpdateStatus(order.id, 'accepted')}
+                        style={{ flex: 2, backgroundColor: 'var(--primary)', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '0.625rem', fontWeight: '800', fontSize: '0.95rem', cursor: 'pointer', boxShadow: 'var(--shadow-colored)' }}
+                      >
+                        Accept Order
+                      </button>
+                      <button
+                        onClick={() => handleUpdateStatus(order.id, 'cancelled')}
+                        style={{ flex: 1, backgroundColor: 'transparent', color: '#DC2626', border: '1px solid #DC2626', padding: '0.75rem', borderRadius: '0.625rem', fontWeight: '700', fontSize: '0.875rem', cursor: 'pointer' }}
+                      >
+                        Cancel
+                      </button>
+                    </>
                   )}
 
-                  {(order.status === 'placed' || order.status === 'accepted') && (
-                    <button
-                      onClick={() => handleUpdateStatus(order.id, 'preparing')}
-                      style={{ flex: 1, backgroundColor: '#F5A623', color: 'white', border: 'none', padding: '0.65rem', borderRadius: '0.5rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
-                    >
-                      Mark Preparing
-                    </button>
+                  {order.status === 'accepted' && (
+                    <>
+                      <button
+                        onClick={() => handleUpdateStatus(order.id, 'preparing')}
+                        style={{ flex: 2, backgroundColor: '#F5A623', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '0.625rem', fontWeight: '800', fontSize: '0.95rem', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
+                      >
+                        Mark Preparing
+                      </button>
+                      <button
+                        onClick={() => handleUpdateStatus(order.id, 'cancelled')}
+                        style={{ flex: 1, backgroundColor: 'transparent', color: '#DC2626', border: '1px solid #DC2626', padding: '0.75rem', borderRadius: '0.625rem', fontWeight: '700', fontSize: '0.875rem', cursor: 'pointer' }}
+                      >
+                        Cancel
+                      </button>
+                    </>
                   )}
 
-                  {(order.status === 'preparing' || order.status === 'accepted') && (
-                    <button
-                      onClick={() => handleUpdateStatus(order.id, 'ready')}
-                      style={{ flex: 1, backgroundColor: 'var(--primary)', color: 'white', border: 'none', padding: '0.65rem', borderRadius: '0.5rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: 'var(--shadow-colored)' }}
-                    >
-                      Mark Ready for Pickup
-                    </button>
+                  {order.status === 'preparing' && (
+                    <>
+                      <button
+                        onClick={() => handleUpdateStatus(order.id, 'ready')}
+                        style={{ flex: 2, backgroundColor: 'var(--primary)', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '0.625rem', fontWeight: '800', fontSize: '0.95rem', cursor: 'pointer', boxShadow: 'var(--shadow-colored)' }}
+                      >
+                        Ready for Pickup
+                      </button>
+                      <button
+                        onClick={() => handleUpdateStatus(order.id, 'cancelled')}
+                        style={{ flex: 1, backgroundColor: 'transparent', color: '#DC2626', border: '1px solid #DC2626', padding: '0.75rem', borderRadius: '0.625rem', fontWeight: '700', fontSize: '0.875rem', cursor: 'pointer' }}
+                      >
+                        Cancel
+                      </button>
+                    </>
                   )}
 
                   {order.status === 'ready' && (
                     <button
                       onClick={() => handleUpdateStatus(order.id, 'completed')}
-                      style={{ flex: 1, backgroundColor: '#16A34A', color: 'white', border: 'none', padding: '0.65rem', borderRadius: '0.5rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
+                      style={{ flex: 1, backgroundColor: '#16A34A', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '0.625rem', fontWeight: '800', fontSize: '0.95rem', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}
                     >
-                      Complete & Handover
+                      Mark Delivered & Complete
                     </button>
                   )}
 
-                  {order.status !== 'completed' && order.status !== 'cancelled' && (
-                    <button
-                      onClick={() => handleUpdateStatus(order.id, 'cancelled')}
-                      style={{ backgroundColor: 'transparent', color: '#DC2626', border: '1px solid #DC2626', padding: '0.65rem 1rem', borderRadius: '0.5rem', fontWeight: 'bold', cursor: 'pointer' }}
-                    >
-                      Cancel
-                    </button>
+                  {order.status === 'completed' && (
+                    <div style={{ flex: 1, textAlign: 'center', color: '#16A34A', fontWeight: '800', fontSize: '0.875rem', padding: '0.5rem', backgroundColor: 'rgba(22, 163, 74, 0.1)', borderRadius: '0.5rem' }}>
+                      ✓ Order Delivered & Completed
+                    </div>
+                  )}
+
+                  {order.status === 'cancelled' && (
+                    <div style={{ flex: 1, textAlign: 'center', color: '#DC2626', fontWeight: '800', fontSize: '0.875rem', padding: '0.5rem', backgroundColor: 'rgba(220, 38, 38, 0.1)', borderRadius: '0.5rem' }}>
+                      ✕ Order Cancelled
+                    </div>
                   )}
                 </div>
               </div>
