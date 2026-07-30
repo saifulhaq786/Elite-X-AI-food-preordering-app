@@ -69,25 +69,24 @@ function LoginContent() {
     setSigningRole(role);
     setIsSigningIn(true);
 
-    const email = role === 'vendor' ? 'vendor@elitex.edu' : role === 'admin' ? 'admin@elitex.edu' : 'alex.m@college.edu';
-    const callbackUrl = role === 'vendor' ? '/vendor/orders' : role === 'admin' ? '/admin' : '/home';
+    const email = role === 'vendor' ? 'vendor@elitex.edu' : role === 'admin' ? 'admin@elitex.edu' : 'student@elitex.edu';
+    const targetUrl = role === 'vendor' ? '/vendor/orders' : role === 'admin' ? '/admin' : '/home';
 
     try {
       const result = await signIn('credentials', {
         email,
         role,
-        callbackUrl,
+        callbackUrl: targetUrl,
         redirect: false,
       });
 
       if (result?.error) {
-        setError('Login failed: ' + result.error);
+        setError('Fast Sign In failed: ' + result.error);
         setIsSigningIn(false);
         setSigningRole(null);
-      } else if (result?.url) {
-        router.push(result.url);
       } else {
-        router.push(callbackUrl);
+        // Guaranteed instant hard navigation to clear session cache & enter portal
+        window.location.href = targetUrl;
       }
     } catch (err: unknown) {
       const error = err as Error;

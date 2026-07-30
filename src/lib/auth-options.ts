@@ -10,6 +10,16 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAIL || 'saifulhaqff@gmail.com')
   .split(',')
   .map((e) => e.trim().toLowerCase());
 
+// Fast timeout helper so login never hangs if MongoDB connection is slow or invalid
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 2500): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error('DB Connection Timeout')), timeoutMs)
+    ),
+  ]);
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -29,13 +39,18 @@ export const authOptions: NextAuthOptions = {
         const rawPassword = credentials?.password || '';
         const requestedRole = (credentials?.role as 'student' | 'vendor' | 'admin') || 'student';
 
+        const isAdmin = ADMIN_EMAILS.includes(email);
+        const role = isAdmin ? 'admin' : requestedRole;
+        const fallbackSlug = role === 'vendor' ? 'tasty-times' : '';
+
         try {
-          await connectDB();
+          // Attempt fast DB connection with a 2.5s timeout
+          await withTimeout(connectDB(), 2500);
 
           let dbUser = await User.findOne({ email });
 
           if (dbUser) {
-            // Verify password if user has password set and rawPassword provided
+            // Verify password if set and provided
             if (dbUser.password && rawPassword) {
               const isValid = await bcrypt.compare(rawPassword, dbUser.password);
               if (!isValid) {
@@ -43,10 +58,8 @@ export const authOptions: NextAuthOptions = {
               }
             }
           } else {
-            // Create new user with password
+            // Create user
             const hashedPassword = rawPassword ? await bcrypt.hash(rawPassword, 10) : '';
-            const isAdmin = ADMIN_EMAILS.includes(email);
-            const role = isAdmin ? 'admin' : requestedRole;
             const name = role === 'vendor' ? 'Canteen Owner' : role === 'admin' ? 'Campus Admin' : email.split('@')[0];
 
             dbUser = await User.create({
@@ -54,13 +67,13 @@ export const authOptions: NextAuthOptions = {
               email,
               password: hashedPassword,
               role,
+              vendorSlug: fallbackSlug,
               college: 'Elite Tech Campus',
               walletBalance: role === 'admin' ? 5000 : 250,
             });
           }
 
-          // If vendor, resolve vendor slug
-          let vendorSlug = dbUser.vendorSlug || '';
+          let vendorSlug = dbUser.vendorSlug || fallbackSlug;
           if (dbUser.role === 'vendor' && !vendorSlug) {
             const vendor = await Vendor.findOne({ ownerId: email });
             if (vendor) vendorSlug = vendor.slug;
@@ -72,23 +85,20 @@ export const authOptions: NextAuthOptions = {
             email: dbUser.email,
             image: dbUser.avatar || '',
             role: dbUser.role,
-            college: dbUser.college,
+            college: dbUser.college || 'Elite Tech Campus',
             vendorSlug,
           };
         } catch (error: unknown) {
           const err = error as Error;
-          console.warn('[NextAuth] Credentials auth warning:', err.message);
           if (err.message === 'Invalid email or password') {
             throw err;
           }
+          console.warn('[NextAuth] Fast login fallback activated:', err.message);
 
-          // In-memory fallback
-          const isAdmin = ADMIN_EMAILS.includes(email);
-          const role = isAdmin ? 'admin' : requestedRole;
-
+          // Guaranteed instant fallback user object so 1-Click Fast Sign In never hangs!
           return {
             id: role === 'vendor' ? 'v_101' : role === 'admin' ? 'a_101' : 'u_101',
-            name: role === 'vendor' ? 'Tasty Times Owner' : role === 'admin' ? 'Campus Admin' : 'Alex Mercer',
+            name: role === 'vendor' ? 'Tasty Times Owner' : role === 'admin' ? 'Campus Admin' : 'Campus Student',
             email,
             image: '',
             role,
@@ -116,7 +126,7 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       if (account?.provider === 'google' && user.email) {
         try {
-          await connectDB();
+          await withTimeout(connectDB(), 2500);
 
           const email = user.email.toLowerCase();
           const isAdmin = ADMIN_EMAILS.includes(email);
@@ -138,7 +148,7 @@ export const authOptions: NextAuthOptions = {
 
           return true;
         } catch (error) {
-          console.error('[NextAuth] Google sign-in DB error:', error);
+          console.warn('[NextAuth] Google sign-in DB timeout fallback:', error);
           return true;
         }
       }
@@ -151,12 +161,12 @@ export const authOptions: NextAuthOptions = {
         token.userId = (u.id as string) || token.sub;
         token.role = (u.role as string) || 'student';
         token.college = (u.college as string) || 'Elite Tech Campus';
-        token.vendorSlug = (u.vendorSlug as string) || '';
+        token.vendorSlug = (u.vendorSlug as string) || (token.role === 'vendor' ? 'tasty-times' : '');
       }
 
       if (account?.provider === 'google' && user?.email) {
         try {
-          await connectDB();
+          await withTimeout(connectDB(), 2000);
           const dbUser = await User.findOne({ email: user.email.toLowerCase() });
           if (dbUser) {
             token.userId = dbUser._id.toString();
@@ -165,7 +175,7 @@ export const authOptions: NextAuthOptions = {
             token.vendorSlug = dbUser.vendorSlug || '';
           }
         } catch (error) {
-          console.error('[NextAuth] JWT callback error:', error);
+          console.warn('[NextAuth] JWT callback timeout fallback:', error);
         }
       }
       return token;
