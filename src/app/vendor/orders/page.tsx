@@ -40,25 +40,36 @@ const mockOrdersFallback: OrderData[] = [
 ];
 
 export default function VendorOrdersPage() {
-  const [orders, setOrders] = useState<OrderData[]>(mockOrdersFallback);
+  const { data: session } = useSession();
+  const sessionUser = session?.user as Record<string, unknown> | undefined;
+  const defaultVendorId = (sessionUser?.vendorSlug as string) || 'campus-kitchen';
+
+  const [selectedStall, setSelectedStall] = useState<string>(defaultVendorId);
+  const [orders, setOrders] = useState<OrderData[]>([]);
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('Order updated!');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: session } = useSession();
-  const sessionUser = session?.user as Record<string, unknown> | undefined;
-  const vendorId = (sessionUser?.vendorSlug as string) || 'campus-kitchen';
+  useEffect(() => {
+    if (defaultVendorId) {
+      setSelectedStall(defaultVendorId);
+    }
+  }, [defaultVendorId]);
 
-  // Poll orders API for this logged in vendor
+  // Poll orders API for selected vendor stall
   useEffect(() => {
     let isMounted = true;
     const loadOrders = async () => {
       try {
-        const realtimeOrders = await fetchOrders(vendorId);
-        if (isMounted && realtimeOrders && realtimeOrders.length > 0) {
-          setOrders(realtimeOrders);
+        const realtimeOrders = await fetchOrders(selectedStall);
+        if (isMounted && realtimeOrders) {
+          if (realtimeOrders.length > 0) {
+            setOrders(realtimeOrders);
+          } else if (orders.length === 0) {
+            setOrders(mockOrdersFallback);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch vendor orders:', err);
@@ -66,13 +77,13 @@ export default function VendorOrdersPage() {
     };
 
     loadOrders();
-    const interval = setInterval(loadOrders, 3000);
+    const interval = setInterval(loadOrders, 2500);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [vendorId]);
+  }, [selectedStall, orders.length]);
 
   const filters = ['All', 'placed', 'accepted', 'preparing', 'ready', 'completed', 'cancelled'];
 
@@ -154,6 +165,40 @@ export default function VendorOrdersPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ backgroundColor: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', marginLeft: '0.5rem' }} 
           />
+        </div>
+      </div>
+
+      {/* Canteen Stall Selector Bar */}
+      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-medium)', borderRadius: '16px', padding: '12px 16px', boxShadow: 'var(--shadow-sm)' }}>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>
+          Select Canteen Stall Terminal:
+        </div>
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {[
+            { id: 'campus-kitchen', label: '🏪 Campus Kitchen' },
+            { id: 'tasty-times', label: '🍛 Tasty Times' },
+            { id: 'royal-kitchen', label: '👑 Royal Kitchen' },
+            { id: 'all', label: '🌐 All Campus Stalls' },
+          ].map((stall) => (
+            <button
+              key={stall.id}
+              onClick={() => setSelectedStall(stall.id)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: '10px',
+                border: selectedStall === stall.id ? '1.5px solid var(--primary)' : '1px solid var(--border-light)',
+                backgroundColor: selectedStall === stall.id ? 'var(--primary)' : 'var(--bg-elevated)',
+                color: selectedStall === stall.id ? '#FFF' : 'var(--text-primary)',
+                fontWeight: '800',
+                fontSize: '12px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s',
+              }}
+            >
+              {stall.label}
+            </button>
+          ))}
         </div>
       </div>
 

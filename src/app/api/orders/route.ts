@@ -18,28 +18,26 @@ function generateOrderNumber(): string {
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const requestedVendorSlug = searchParams.get('vendorSlug') || searchParams.get('vendorId');
 
     try {
       await connectDB();
-      const user = await User.findOne({ email: session.user.email.toLowerCase() });
 
       let query: Record<string, unknown> = {};
 
-      if (requestedVendorSlug) {
+      if (requestedVendorSlug && requestedVendorSlug !== 'all') {
         query = { vendorSlug: requestedVendorSlug };
-      } else if (user?.role === 'vendor') {
-        const vSlug = user.vendorSlug || (session.user as Record<string, unknown>).vendorSlug || 'campus-kitchen';
-        query = { vendorSlug: vSlug };
-      } else if (user?.role === 'admin') {
-        query = {}; // All orders for admin
-      } else if (user) {
-        query = { userId: user._id };
+      } else if (session?.user?.email) {
+        const user = await User.findOne({ email: session.user.email.toLowerCase() });
+        if (user?.role === 'vendor') {
+          const vSlug = user.vendorSlug || (session.user as Record<string, unknown>).vendorSlug || 'campus-kitchen';
+          query = { vendorSlug: vSlug };
+        } else if (user?.role === 'admin') {
+          query = {}; // All orders
+        } else if (user) {
+          query = { userId: user._id };
+        }
       }
 
       const orders = await Order.find(query).sort({ createdAt: -1 }).limit(50).lean();
@@ -71,7 +69,7 @@ export async function GET(request: Request) {
     }
 
     const memoryOrders = getInMemoryOrders();
-    if (requestedVendorSlug) {
+    if (requestedVendorSlug && requestedVendorSlug !== 'all') {
       const filteredInMemory = memoryOrders.filter(
         (o) => o.vendorId === requestedVendorSlug || o.vendorSlug === requestedVendorSlug
       );
@@ -89,10 +87,6 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
     const { vendorSlug, vendorName, items, pickupType, pickupTime, paymentMethod, total, platformFee, parcelCharge, paymentId } = body;
 
@@ -138,53 +132,55 @@ export async function POST(request: Request) {
       updatedAt: now,
     };
 
-    try {
-      await connectDB();
-      const user = await User.findOne({ email: session.user.email.toLowerCase() });
-      if (user) {
-        const dbOrder = await Order.create({
-          userId: user._id,
-          vendorSlug,
-          vendorName,
-          items,
-          status: 'placed',
-          pickupType: pickupType || 'plate',
-          pickupTime: pickupTime || null,
-          paymentMethod: paymentMethod || 'upi',
-          paymentId: paymentId || '',
-          total,
-          platformFee: platformFee ?? 3,
-          parcelCharge: parcelCharge ?? 0,
-          qrCode,
-        });
+    if (session?.user?.email) {
+      try {
+        await connectDB();
+        const user = await User.findOne({ email: session.user.email.toLowerCase() });
+        if (user) {
+          const dbOrder = await Order.create({
+            userId: user._id,
+            vendorSlug,
+            vendorName,
+            items,
+            status: 'placed',
+            pickupType: pickupType || 'plate',
+            pickupTime: pickupTime || null,
+            paymentMethod: paymentMethod || 'upi',
+            paymentId: paymentId || '',
+            total,
+            platformFee: platformFee ?? 3,
+            parcelCharge: parcelCharge ?? 0,
+            qrCode,
+          });
 
-        await User.findByIdAndUpdate(user._id, { $inc: { orderCount: 1 } });
+          await User.findByIdAndUpdate(user._id, { $inc: { orderCount: 1 } });
 
-        const createdResult: InMemoryOrder = {
-          id: dbOrder._id.toString(),
-          orderNumber: dbOrder.orderNumber,
-          userId: dbOrder.userId.toString(),
-          vendorId: dbOrder.vendorSlug,
-          vendorSlug: dbOrder.vendorSlug,
-          vendorName: dbOrder.vendorName,
-          items: dbOrder.items,
-          status: dbOrder.status,
-          pickupType: dbOrder.pickupType,
-          pickupTime: dbOrder.pickupTime,
-          paymentMethod: dbOrder.paymentMethod,
-          total: dbOrder.total,
-          platformFee: dbOrder.platformFee,
-          parcelCharge: dbOrder.parcelCharge,
-          qrCode: dbOrder.qrCode,
-          createdAt: dbOrder.createdAt.toISOString(),
-          updatedAt: dbOrder.updatedAt.toISOString(),
-        };
+          const createdResult: InMemoryOrder = {
+            id: dbOrder._id.toString(),
+            orderNumber: dbOrder.orderNumber,
+            userId: dbOrder.userId.toString(),
+            vendorId: dbOrder.vendorSlug,
+            vendorSlug: dbOrder.vendorSlug,
+            vendorName: dbOrder.vendorName,
+            items: dbOrder.items,
+            status: dbOrder.status,
+            pickupType: dbOrder.pickupType,
+            pickupTime: dbOrder.pickupTime,
+            paymentMethod: dbOrder.paymentMethod,
+            total: dbOrder.total,
+            platformFee: dbOrder.platformFee,
+            parcelCharge: dbOrder.parcelCharge,
+            qrCode: dbOrder.qrCode,
+            createdAt: dbOrder.createdAt.toISOString(),
+            updatedAt: dbOrder.updatedAt.toISOString(),
+          };
 
-        addInMemoryOrder(createdResult);
-        return NextResponse.json(createdResult, { status: 201 });
+          addInMemoryOrder(createdResult);
+          return NextResponse.json(createdResult, { status: 201 });
+        }
+      } catch (dbErr) {
+        console.warn('[API] POST /api/orders DB fallback:', dbErr);
       }
-    } catch (dbErr) {
-      console.warn('[API] POST /api/orders DB fallback:', dbErr);
     }
 
     addInMemoryOrder(newOrderObj);
