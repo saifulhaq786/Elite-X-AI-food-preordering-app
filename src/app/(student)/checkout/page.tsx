@@ -2,13 +2,13 @@
 
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Clock, CreditCard, QrCode, Cpu, ChevronDown, ChevronUp, Loader2, Wallet, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Clock, CreditCard, QrCode, Cpu, ChevronDown, ChevronUp, Loader2, Wallet, CheckCircle2, AlertCircle, Sparkles, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useCartStore, type PickupType } from '@/store/cart-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useOrderStore } from '@/store/order-store';
 import { openRazorpayCheckout } from '@/lib/razorpay';
-import { generate20MinTimeSlots, type TimeSlot } from '@/lib/ml-analytics';
+import { generate20MinTimeSlots, getBestTimeSlotRecommendation, type TimeSlot } from '@/lib/ml-analytics';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -241,13 +241,74 @@ function CheckoutContent() {
 
         {/* 20-Minute Time Slot Selection */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <Clock size={18} color="var(--primary)" />
-            <h3 style={{ fontSize: '15px', fontWeight: '800', margin: 0 }}>Select 20-Min Pickup Slot</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock size={18} color="var(--primary)" />
+              <h3 style={{ fontSize: '15px', fontWeight: '800', margin: 0 }}>Select 20-Min Pickup Slot</h3>
+            </div>
+            <span style={{ fontSize: '10px', backgroundColor: 'rgba(252, 128, 25, 0.1)', color: 'var(--primary)', fontWeight: '800', padding: '3px 8px', borderRadius: '6px' }}>
+              🤖 AI Predicted
+            </span>
           </div>
           <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '0 0 14px 0' }}>
             Operating Canteen Windows: 8-9 AM | 12-2 PM | 3:30-5 PM
           </p>
+
+          {/* AI PREDICTED SLOT RECOMMENDATION CARD */}
+          {(() => {
+            const aiSlot = getBestTimeSlotRecommendation();
+            const isSelectedAI = selectedTime === aiSlot.slot;
+            return (
+              <div style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderRadius: '16px',
+                padding: '14px',
+                border: isSelectedAI ? '2px solid #16A34A' : '1px solid var(--primary)',
+                boxShadow: 'var(--shadow-sm)',
+                marginBottom: '16px',
+                background: 'linear-gradient(135deg, rgba(252, 128, 25, 0.08) 0%, rgba(255, 255, 255, 0) 100%)',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Sparkles size={16} color="var(--primary)" />
+                    <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--primary)' }}>AI Recommended Slot</span>
+                  </div>
+                  <span suppressHydrationWarning style={{ fontSize: '10px', fontWeight: '800', backgroundColor: '#16A34A', color: '#FFF', padding: '2px 8px', borderRadius: '6px' }}>
+                    Est. Wait &lt; {aiSlot.estimatedWaitMinutes} min ({aiSlot.confidenceScore}% confidence)
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div suppressHydrationWarning style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-primary)' }}>{aiSlot.slot}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      Fast-track counter queue for minimal wait
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTime(aiSlot.slot)}
+                    style={{
+                      backgroundColor: isSelectedAI ? '#16A34A' : 'var(--primary)',
+                      color: '#FFF',
+                      border: 'none',
+                      padding: '8px 14px',
+                      borderRadius: '10px',
+                      fontSize: '11px',
+                      fontWeight: '800',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    {isSelectedAI ? <><CheckCircle2 size={14} /> Selected</> : <><Zap size={14} /> Select AI Slot</>}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
 
           {[
             { label: '🌅 Morning Window (8:00 AM - 9:00 AM)', slots: groupMorning, suffix: ' AM' },
@@ -257,28 +318,36 @@ function CheckoutContent() {
             <div key={label} style={{ marginBottom: '14px' }}>
               <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--primary)', marginBottom: '6px', textTransform: 'uppercase' }}>{label}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                {slots.map((slot) => (
-                  <button
-                    key={slot.id}
-                    onClick={() => setSelectedTime(slot.timeRange)}
-                    style={{
-                      padding: '10px 4px',
-                      borderRadius: '12px',
-                      border: selectedTime === slot.timeRange ? '2px solid var(--primary)' : '1px solid var(--border-light)',
-                      backgroundColor: selectedTime === slot.timeRange ? 'var(--primary)' : 'var(--bg-surface)',
-                      color: selectedTime === slot.timeRange ? '#FFF' : 'var(--text-primary)',
-                      fontSize: '11px',
-                      fontWeight: '800',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <span>{slot.timeRange.replace(suffix, '')}</span>
-                    {slot.isPeak && <span style={{ fontSize: '8px', opacity: 0.9 }}>PEAK</span>}
-                  </button>
-                ))}
+                {slots.map((slot) => {
+                  const isAI = slot.timeRange === getBestTimeSlotRecommendation().slot;
+                  return (
+                    <button
+                      key={slot.id}
+                      onClick={() => setSelectedTime(slot.timeRange)}
+                      style={{
+                        padding: '10px 4px',
+                        borderRadius: '12px',
+                        border: selectedTime === slot.timeRange ? '2px solid var(--primary)' : isAI ? '1px solid #16A34A' : '1px solid var(--border-light)',
+                        backgroundColor: selectedTime === slot.timeRange ? 'var(--primary)' : 'var(--bg-surface)',
+                        color: selectedTime === slot.timeRange ? '#FFF' : 'var(--text-primary)',
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        position: 'relative',
+                      }}
+                    >
+                      <span>{slot.timeRange.replace(suffix, '')}</span>
+                      {isAI ? (
+                        <span style={{ fontSize: '8px', color: selectedTime === slot.timeRange ? '#FFF' : '#16A34A', fontWeight: '800' }}>🤖 AI BEST</span>
+                      ) : slot.isPeak ? (
+                        <span style={{ fontSize: '8px', opacity: 0.9 }}>PEAK</span>
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}
