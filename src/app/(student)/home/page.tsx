@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Search, MapPin, Star, Flame, Cpu, Wifi, ChevronRight, Sparkles, Activity, Zap, Compass } from 'lucide-react';
+import { Search, MapPin, Star, Flame, Cpu, Wifi, ChevronRight, Sparkles, Activity, Zap, Compass, Store } from 'lucide-react';
 import { vendors as localVendors, foodItems as localFoodItems } from '@/data/vendors';
 import { useAuthStore } from '@/store/auth-store';
 import { fetchVendors, fetchVendorMenu, type VendorData, type MenuItemData } from '@/lib/api-client';
@@ -38,7 +38,7 @@ export default function StudentHomePage() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [showMap, setShowMap] = useState(false);
 
-  // ML Data (Initialized in useEffect to prevent SSR vs Client hydration mismatch)
+  // ML Data
   const [heatmapData, setHeatmapData] = useState<RushHourData[]>([]);
   const [bestSlot, setBestSlot] = useState<{
     slot: string;
@@ -58,7 +58,7 @@ export default function StudentHomePage() {
     setBestSlot(getBestTimeSlotRecommendation());
   }, []);
 
-  // Auto-seed and fetch data from API
+  // Fetch vendors from API
   useEffect(() => {
     async function loadData() {
       try {
@@ -172,169 +172,62 @@ export default function StudentHomePage() {
         </div>
       </Link>
 
-      {/* GOOGLE MAPS LOCATION-BASED CANTEEN FINDER BUTTON / TOGGLE */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <button
-          onClick={() => setShowMap(!showMap)}
-          style={{
-            width: '100%',
-            backgroundColor: showMap ? 'var(--bg-surface)' : 'rgba(252, 128, 25, 0.1)',
-            color: 'var(--primary)',
-            border: '1.5px solid var(--primary)',
-            padding: '12px 18px',
-            borderRadius: '16px',
-            fontWeight: '800',
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            boxShadow: 'var(--shadow-sm)'
-          }}
-        >
+      {/* 1. CAMPUS CANTEENS / VENDORS SECTION (DISPLAYED FIRST AS REQUESTED) */}
+      <section style={{ marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Compass size={20} color="var(--primary)" />
-            <span>{showMap ? 'Hide Campus GPS Map' : 'Explore Campus Google Maps & Distances'}</span>
+            <Store size={20} color="var(--primary)" />
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '900', margin: 0, color: 'var(--text-primary)' }}>Select Campus Canteen</h2>
           </div>
-          <span style={{ fontSize: '12px', backgroundColor: 'var(--primary)', color: '#FFF', padding: '3px 10px', borderRadius: '8px' }}>
-            📍 GPS Live
-          </span>
-        </button>
-
-        {showMap && (
-          <div style={{ marginTop: '12px' }}>
-            <CampusMap />
-          </div>
-        )}
-      </div>
-
-      {/* ML AI BEST TIME SLOT RECOMMENDATION CARD */}
-      <div style={{
-        backgroundColor: 'var(--bg-surface)',
-        borderRadius: '20px',
-        padding: '16px',
-        border: '1px solid var(--primary)',
-        boxShadow: 'var(--shadow-md)',
-        marginBottom: '1.5rem',
-        background: 'linear-gradient(135deg, rgba(252, 128, 25, 0.08) 0%, rgba(255, 255, 255, 0) 100%)',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Sparkles size={18} color="var(--primary)" />
-            <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--primary)' }}>AI Recommended 20-Min Slot</span>
-          </div>
-          <span suppressHydrationWarning style={{ fontSize: '10px', fontWeight: '800', backgroundColor: 'var(--primary)', color: '#FFF', padding: '2px 8px', borderRadius: '6px' }}>
-            {bestSlot.badge}
+          <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: '800', backgroundColor: 'rgba(252, 128, 25, 0.1)', padding: '4px 10px', borderRadius: '8px' }}>
+            {displayVendors.length} Stalls Open
           </span>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div suppressHydrationWarning style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-primary)' }}>{bestSlot.slot}</div>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              Est. Queue Wait: <strong style={{ color: '#16A34A' }}>&lt; {bestSlot.estimatedWaitMinutes} min</strong> • Confidence: <strong>{bestSlot.confidenceScore}%</strong>
-            </div>
-          </div>
-          <Link href="/checkout?type=plate" style={{ textDecoration: 'none' }}>
-            <button style={{
-              backgroundColor: 'var(--primary)',
-              color: '#FFF',
-              border: 'none',
-              padding: '10px 16px',
-              borderRadius: '12px',
-              fontSize: '12px',
-              fontWeight: '800',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              boxShadow: 'var(--shadow-colored)'
-            }}>
-              <Zap size={14} /> Reserve Slot
-            </button>
-          </Link>
-        </div>
-      </div>
-
-      {/* ML CANTEEN CROWD HEATMAP VIEW WITH CLEAN HORIZONTAL TIMINGS */}
-      <section style={{ marginBottom: '1.75rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Activity size={18} color="var(--primary)" />
-            <h2 style={{ fontSize: '1.1rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>Canteen Crowd Heatmap</h2>
-          </div>
-          <div style={{ display: 'flex', gap: '8px', fontSize: '10px', fontWeight: '700' }}>
-            <span style={{ color: '#16A34A' }}>● Low</span>
-            <span style={{ color: '#F5A623' }}>● Moderate</span>
-            <span style={{ color: '#DC2626' }}>● Peak</span>
-          </div>
-        </div>
-
-        <div style={{
-          backgroundColor: 'var(--bg-surface)',
-          borderRadius: '20px',
-          padding: '16px',
-          border: '1px solid var(--border-light)',
-          boxShadow: 'var(--shadow-sm)'
-        }}>
-          {/* Horizontal Scrollable Bar Chart */}
-          <div style={{ overflowX: 'auto', paddingBottom: '12px', scrollbarWidth: 'thin' }}>
-            <div style={{ display: 'flex', gap: '14px', minWidth: '780px', alignItems: 'flex-end', height: '110px', paddingTop: '10px' }}>
-              {heatmapData.map((data, idx) => (
-                <div 
-                  key={idx}
-                  onClick={() => setSelectedHeatmapHour(data)}
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    height: '100%',
-                    justifyContent: 'flex-end',
-                  }}
-                >
-                  <div style={{ fontSize: '9px', fontWeight: '800', color: data.color, marginBottom: '4px' }}>
-                    {data.score}%
-                  </div>
-                  <div 
-                    style={{
-                      width: '100%',
-                      height: `${data.score * 0.65}%`,
-                      backgroundColor: data.color,
-                      borderRadius: '6px 6px 0 0',
-                      transition: 'all 0.3s ease',
-                      opacity: selectedHeatmapHour?.hour === data.hour ? 1 : 0.85,
-                      boxShadow: data.rushLevel === 'Peak' ? '0 0 8px rgba(220, 38, 38, 0.4)' : 'none',
-                    }}
-                  />
-                  {/* Clean Straight Horizontal Timing Label */}
-                  <span style={{
-                    fontSize: '10px',
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+          {displayVendors.map((vendor) => (
+            <Link key={vendor.id} href={`/vendor/${vendor.id}`} style={{ textDecoration: 'none' }}>
+              <div style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderRadius: '20px',
+                overflow: 'hidden',
+                border: '1px solid var(--border-medium)',
+                transition: 'transform 0.2s ease',
+                boxShadow: 'var(--shadow-sm)'
+              }}>
+                <div style={{ position: 'relative', height: '140px', backgroundColor: 'var(--bg-elevated)' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={vendor.coverImage} alt={vendor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%)' }} />
+                  <div style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    backgroundColor: 'var(--primary)',
+                    color: '#FFF',
+                    padding: '4px 8px',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
                     fontWeight: '800',
-                    color: 'var(--text-primary)',
-                    marginTop: '8px',
-                    whiteSpace: 'nowrap',
-                    textAlign: 'center',
-                    lineHeight: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
                   }}>
-                    {data.hour}
-                  </span>
+                    <Star size={12} fill="#FFF" /> {vendor.rating}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {selectedHeatmapHour ? (
-            <div style={{ marginTop: '14px', padding: '10px 14px', backgroundColor: 'var(--bg-elevated)', borderRadius: '12px', fontSize: '12px', color: 'var(--text-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border-light)' }}>
-              <span>Timing Slot: <strong>{selectedHeatmapHour.hour}</strong></span>
-              <span>Rush Density: <strong style={{ color: selectedHeatmapHour.color }}>{selectedHeatmapHour.rushLevel} ({selectedHeatmapHour.score}%)</strong></span>
-            </div>
-          ) : (
-            <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--text-tertiary)', textAlign: 'center' }}>
-              💡 Tap any 20-min timing bar above to view exact crowd density prediction.
-            </div>
-          )}
+                <div style={{ padding: '1rem' }}>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '1.05rem', fontWeight: '800', color: 'var(--text-primary)' }}>{vendor.name}</h3>
+                  <p style={{ margin: '0 0 10px 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{vendor.tagline}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-tertiary)', borderTop: '1px solid var(--border-light)', paddingTop: '8px' }}>
+                    <span>🕒 {vendor.openingTime} - {vendor.closingTime}</span>
+                    <span style={{ color: 'var(--primary)', fontWeight: 800 }}>Order Ahead →</span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -367,8 +260,8 @@ export default function StudentHomePage() {
         </AnimatePresence>
       </div>
 
-      {/* Categories Filter Horizontal Scroll */}
-      <div style={{ marginBottom: '2rem' }}>
+      {/* Categories Filter */}
+      <div style={{ marginBottom: '1.75rem' }}>
         <h2 style={{ fontSize: '1.1rem', fontWeight: '800', margin: '0 0 1rem 0', color: 'var(--text-primary)' }}>Explore Categories</h2>
         <div style={{ display: 'flex', gap: '0.6rem', overflowX: 'auto', paddingBottom: '4px', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
           {categories.map((cat) => (
@@ -395,62 +288,8 @@ export default function StudentHomePage() {
         </div>
       </div>
 
-      {/* Campus Canteens / Vendors Section */}
-      <section style={{ marginBottom: '2.25rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>Campus Canteen Stalls</h2>
-          <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: '700' }}>{displayVendors.length} Stalls Open</span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-          {displayVendors.map((vendor) => (
-            <Link key={vendor.id} href={`/vendor/${vendor.id}`} style={{ textDecoration: 'none' }}>
-              <div style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderRadius: '20px',
-                overflow: 'hidden',
-                border: '1px solid var(--border-light)',
-                transition: 'transform 0.2s ease',
-                boxShadow: 'var(--shadow-sm)'
-              }}>
-                <div style={{ position: 'relative', height: '140px', backgroundColor: 'var(--bg-elevated)' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={vendor.coverImage} alt={vendor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%)' }} />
-                  <div style={{
-                    position: 'absolute',
-                    top: '12px',
-                    right: '12px',
-                    backgroundColor: 'var(--primary)',
-                    color: '#FFF',
-                    padding: '4px 8px',
-                    borderRadius: '8px',
-                    fontSize: '0.75rem',
-                    fontWeight: '800',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}>
-                    <Star size={12} fill="#FFF" /> {vendor.rating}
-                  </div>
-                </div>
-
-                <div style={{ padding: '1rem' }}>
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '1.05rem', fontWeight: '800', color: 'var(--text-primary)' }}>{vendor.name}</h3>
-                  <p style={{ margin: '0 0 10px 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{vendor.tagline}</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-tertiary)', borderTop: '1px solid var(--border-light)', paddingTop: '8px' }}>
-                    <span>🕒 {vendor.openingTime} - {vendor.closingTime}</span>
-                    <span style={{ color: 'var(--primary)', fontWeight: 700 }}>Order Ahead →</span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       {/* Trending Food Items Grid */}
-      <section>
+      <section style={{ marginBottom: '2.25rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
           <Flame size={20} color="var(--primary)" />
           <h2 style={{ fontSize: '1.1rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>Popular Pre-Order Dishes</h2>
@@ -511,6 +350,177 @@ export default function StudentHomePage() {
               </div>
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* 2. AI ANALYTICS & RUSH INTELLIGENCE SECTION (PRESENTED IN ORDERING / BOTTOM) */}
+      <section style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
+        <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
+          🧠 AI Queue & Rush Intelligence
+        </div>
+
+        {/* ML AI BEST TIME SLOT RECOMMENDATION CARD */}
+        <div style={{
+          backgroundColor: 'var(--bg-surface)',
+          borderRadius: '20px',
+          padding: '16px',
+          border: '1px solid var(--primary)',
+          boxShadow: 'var(--shadow-md)',
+          marginBottom: '1.5rem',
+          background: 'linear-gradient(135deg, rgba(252, 128, 25, 0.08) 0%, rgba(255, 255, 255, 0) 100%)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Sparkles size={18} color="var(--primary)" />
+              <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--primary)' }}>AI Recommended 20-Min Slot</span>
+            </div>
+            <span suppressHydrationWarning style={{ fontSize: '10px', fontWeight: '800', backgroundColor: 'var(--primary)', color: '#FFF', padding: '2px 8px', borderRadius: '6px' }}>
+              {bestSlot.badge}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div suppressHydrationWarning style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-primary)' }}>{bestSlot.slot}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                Est. Queue Wait: <strong style={{ color: '#16A34A' }}>&lt; {bestSlot.estimatedWaitMinutes} min</strong> • Confidence: <strong>{bestSlot.confidenceScore}%</strong>
+              </div>
+            </div>
+            <Link href="/checkout?type=plate" style={{ textDecoration: 'none' }}>
+              <button style={{
+                backgroundColor: 'var(--primary)',
+                color: '#FFF',
+                border: 'none',
+                padding: '10px 16px',
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: '800',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                boxShadow: 'var(--shadow-colored)'
+              }}>
+                <Zap size={14} /> Reserve Slot
+              </button>
+            </Link>
+          </div>
+        </div>
+
+        {/* ML CANTEEN CROWD HEATMAP */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Activity size={18} color="var(--primary)" />
+              <h2 style={{ fontSize: '1.1rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>Canteen Crowd Heatmap</h2>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', fontSize: '10px', fontWeight: '700' }}>
+              <span style={{ color: '#16A34A' }}>● Low</span>
+              <span style={{ color: '#F5A623' }}>● Moderate</span>
+              <span style={{ color: '#DC2626' }}>● Peak</span>
+            </div>
+          </div>
+
+          <div style={{
+            backgroundColor: 'var(--bg-surface)',
+            borderRadius: '20px',
+            padding: '16px',
+            border: '1px solid var(--border-light)',
+            boxShadow: 'var(--shadow-sm)'
+          }}>
+            <div style={{ overflowX: 'auto', paddingBottom: '12px', scrollbarWidth: 'thin' }}>
+              <div style={{ display: 'flex', gap: '14px', minWidth: '780px', alignItems: 'flex-end', height: '110px', paddingTop: '10px' }}>
+                {heatmapData.map((data, idx) => (
+                  <div 
+                    key={idx}
+                    onClick={() => setSelectedHeatmapHour(data)}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      height: '100%',
+                      justifyContent: 'flex-end',
+                    }}
+                  >
+                    <div style={{ fontSize: '9px', fontWeight: '800', color: data.color, marginBottom: '4px' }}>
+                      {data.score}%
+                    </div>
+                    <div 
+                      style={{
+                        width: '100%',
+                        height: `${data.score * 0.65}%`,
+                        backgroundColor: data.color,
+                        borderRadius: '6px 6px 0 0',
+                        transition: 'all 0.3s ease',
+                        opacity: selectedHeatmapHour?.hour === data.hour ? 1 : 0.85,
+                        boxShadow: data.rushLevel === 'Peak' ? '0 0 8px rgba(220, 38, 38, 0.4)' : 'none',
+                      }}
+                    />
+                    <span style={{
+                      fontSize: '10px',
+                      fontWeight: '800',
+                      color: 'var(--text-primary)',
+                      marginTop: '8px',
+                      whiteSpace: 'nowrap',
+                      textAlign: 'center',
+                      lineHeight: 1,
+                    }}>
+                      {data.hour}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {selectedHeatmapHour ? (
+              <div style={{ marginTop: '14px', padding: '10px 14px', backgroundColor: 'var(--bg-elevated)', borderRadius: '12px', fontSize: '12px', color: 'var(--text-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border-light)' }}>
+                <span>Timing Slot: <strong>{selectedHeatmapHour.hour}</strong></span>
+                <span>Rush Density: <strong style={{ color: selectedHeatmapHour.color }}>{selectedHeatmapHour.rushLevel} ({selectedHeatmapHour.score}%)</strong></span>
+              </div>
+            ) : (
+              <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--text-tertiary)', textAlign: 'center' }}>
+                💡 Tap any 20-min timing bar above to view exact crowd density prediction.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* GPS MAP TOGGLE */}
+        <div>
+          <button
+            onClick={() => setShowMap(!showMap)}
+            style={{
+              width: '100%',
+              backgroundColor: showMap ? 'var(--bg-surface)' : 'rgba(252, 128, 25, 0.1)',
+              color: 'var(--primary)',
+              border: '1.5px solid var(--primary)',
+              padding: '12px 18px',
+              borderRadius: '16px',
+              fontWeight: '800',
+              fontSize: '14px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Compass size={20} color="var(--primary)" />
+              <span>{showMap ? 'Hide Campus GPS Map' : 'Explore Campus Google Maps & Distances'}</span>
+            </div>
+            <span style={{ fontSize: '12px', backgroundColor: 'var(--primary)', color: '#FFF', padding: '3px 10px', borderRadius: '8px' }}>
+              📍 GPS Live
+            </span>
+          </button>
+
+          {showMap && (
+            <div style={{ marginTop: '12px' }}>
+              <CampusMap />
+            </div>
+          )}
         </div>
       </section>
     </div>
