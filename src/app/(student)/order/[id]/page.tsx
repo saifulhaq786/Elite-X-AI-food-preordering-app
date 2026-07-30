@@ -29,7 +29,7 @@ export default function OrderTrackingPage() {
     const generateQR = async () => {
       try {
         const url = await QRCode.toDataURL(id || 'ORDER123', {
-          color: { dark: '#FC8019', light: '#FFFFFF' },
+          color: { dark: '#1F5067', light: '#FFFFFF' },
           width: 200,
         });
         setQrCodeData(url);

@@ -148,7 +148,7 @@ export default function SmartCardPage() {
             borderRadius: '24px',
             background: card.isFrozen 
               ? 'linear-gradient(135deg, #64748B 0%, #334155 100%)' 
-              : 'linear-gradient(135deg, #FC8019 0%, #E5730D 50%, #FC8019 100%)',
+              : 'linear-gradient(135deg, #1F5067 0%, #15394A 50%, #1F5067 100%)',
             padding: '24px',
             display: 'flex',
             flexDirection: 'column',

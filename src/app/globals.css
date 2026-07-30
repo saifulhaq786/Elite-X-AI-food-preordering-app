@@ -27,31 +27,31 @@ p, h1, h2, h3, h4, h5, h6 {
   isolation: isolate;
 }
 
-/* --- Swiggy Vibrant Theme Design System --- */
+/* --- Swiggy & KPR Campus Design System --- */
 :root {
   /* Fonts */
   --font-primary: 'Inter', sans-serif;
   --font-display: 'Outfit', sans-serif;
 
-  /* Signature Orange & White Palette */
-  --primary: #FC8019;
-  --primary-light: #FF9A42;
-  --primary-dark: #E5730D;
-  --accent-green: #16A34A;
-  --accent-gold: #F5A623;
+  /* Campus Deep Teal & Green Palette (KPR Campus Theme) */
+  --primary: #1F5067;
+  --primary-light: #2C6B89;
+  --primary-dark: #15394A;
+  --accent-green: #4FA853;
+  --accent-gold: #4FA853;
   --accent-red: #DC2626;
   
-  --primary-gradient: linear-gradient(135deg, #FC8019 0%, #E5730D 100%);
-  --gold-gradient: linear-gradient(135deg, #FF9A42 0%, #FC8019 100%);
-  --card-gradient: linear-gradient(135deg, #FFFFFF 0%, #FFF7ED 100%);
-  --dark-glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 248, 240, 0.9) 100%);
+  --primary-gradient: linear-gradient(135deg, #1F5067 0%, #15394A 100%);
+  --gold-gradient: linear-gradient(135deg, #4FA853 0%, #1F5067 100%);
+  --card-gradient: linear-gradient(135deg, #FFFFFF 0%, #F0F7FA 100%);
+  --dark-glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 247, 250, 0.9) 100%);
 
   /* Default Bright White Backgrounds */
   --bg-main: #FFFFFF;
   --bg-surface: #FFFFFF;
   --bg-surface-glass: rgba(255, 255, 255, 0.92);
   --bg-surface-glass-heavy: rgba(255, 255, 255, 0.97);
-  --bg-elevated: #FFF7ED;
+  --bg-elevated: #F0F7FA;
   
   /* Text Colors (High Contrast on White) */
   --text-primary: #0F172A;
@@ -61,31 +61,31 @@ p, h1, h2, h3, h4, h5, h6 {
   --text-inverse: #FFFFFF;
 
   /* Status Colors */
-  --success: #16A34A;
-  --success-light: rgba(22, 163, 74, 0.1);
-  --warning: #FC8019;
-  --warning-light: rgba(252, 128, 25, 0.1);
+  --success: #4FA853;
+  --success-light: rgba(79, 168, 83, 0.1);
+  --warning: #1F5067;
+  --warning-light: rgba(31, 80, 103, 0.1);
   --error: #DC2626;
   --error-light: rgba(220, 38, 38, 0.1);
-  --info: #FC8019;
-  --info-light: rgba(252, 128, 25, 0.1);
+  --info: #1F5067;
+  --info-light: rgba(31, 80, 103, 0.1);
   
   /* Veg/Non-Veg Indicators */
-  --veg: #16A34A;
+  --veg: #4FA853;
   --non-veg: #DC2626;
 
   /* Borders & Dividers */
-  --border-light: rgba(252, 128, 25, 0.15);
-  --border-medium: rgba(252, 128, 25, 0.28);
-  --border-focus: #FC8019;
+  --border-light: rgba(31, 80, 103, 0.15);
+  --border-medium: rgba(31, 80, 103, 0.28);
+  --border-focus: #1F5067;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px 0 rgba(252, 128, 25, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px 0 rgba(252, 128, 25, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 25px -5px rgba(252, 128, 25, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 20px 30px -5px rgba(252, 128, 25, 0.22);
-  --shadow-colored: 0 10px 25px -5px rgba(252, 128, 25, 0.4);
-  --shadow-glass: 0 8px 32px 0 rgba(252, 128, 25, 0.1);
+  --shadow-sm: 0 1px 3px 0 rgba(31, 80, 103, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px 0 rgba(31, 80, 103, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 25px -5px rgba(31, 80, 103, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 30px -5px rgba(31, 80, 103, 0.22);
+  --shadow-colored: 0 10px 25px -5px rgba(31, 80, 103, 0.35);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 80, 103, 0.1);
   
   /* Border Radius */
   --radius-xs: 4px;

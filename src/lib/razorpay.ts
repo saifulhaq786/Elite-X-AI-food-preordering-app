@@ -80,7 +80,7 @@ export async function openRazorpayCheckout(options: {
           email: options.userEmail || 'student@college.edu',
           contact: options.userPhone || '9876543210',
         },
-        theme: { color: '#FC8019' },
+        theme: { color: '#1F5067' },
         handler: (response) => {
           options.onSuccess(response.razorpay_payment_id);
         },

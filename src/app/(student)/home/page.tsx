@@ -11,9 +11,9 @@ import { getCanteenRushHeatmap, getBestTimeSlotRecommendation, type RushHourData
 import CampusMap from '@/components/CampusMap';
 
 const banners = [
-  { id: 1, title: 'Pre-Order Campus Meals • Zero Waiting at Counters', subtitle: 'Select pickup slot & skip canteen queues', bg: 'linear-gradient(135deg, #FC8019 0%, #E5730D 100%)' },
-  { id: 2, title: 'Offline Smart Tap Card Enabled', subtitle: 'Pay instantly at canteen counters with 0 network signal', bg: 'linear-gradient(135deg, #FF9A42 0%, #FC8019 100%)' },
-  { id: 3, title: 'Dine-In Plate or Takeaway Packaging', subtitle: 'Freshly prepared hot food waiting at your slot', bg: 'linear-gradient(135deg, #16A34A 0%, #15803D 100%)' }
+  { id: 1, title: 'Pre-Order Campus Meals • Zero Waiting at Counters', subtitle: 'Select pickup slot & skip canteen queues', bg: 'linear-gradient(135deg, #1F5067 0%, #15394A 100%)' },
+  { id: 2, title: 'Offline Smart Tap Card Enabled', subtitle: 'Pay instantly at canteen counters with 0 network signal', bg: 'linear-gradient(135deg, #2C6B89 0%, #1F5067 100%)' },
+  { id: 3, title: 'Dine-In Plate or Takeaway Packaging', subtitle: 'Freshly prepared hot food waiting at your slot', bg: 'linear-gradient(135deg, #4FA853 0%, #3D8C41 100%)' }
 ];
 
 const categories = [
