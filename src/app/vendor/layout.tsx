@@ -10,7 +10,8 @@ import {
   BarChart3, 
   QrCode, 
   LogOut,
-  Store
+  Store,
+  User
 } from 'lucide-react';
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { name: 'Orders', href: '/vendor/orders', icon: ClipboardList },
   { name: 'Analytics', href: '/vendor/analytics', icon: BarChart3 },
   { name: 'Scanner', href: '/vendor/scan', icon: QrCode },
+  { name: 'Profile', href: '/vendor/profile', icon: User },
 ];
 
 export default function VendorLayout({ children }: { children: React.ReactNode }) {

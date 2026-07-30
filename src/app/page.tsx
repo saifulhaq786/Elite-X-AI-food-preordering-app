@@ -152,28 +152,6 @@ export default function LandingPage() {
             </button>
           </Link>
 
-          <Link href="/smart-card" style={{ textDecoration: 'none' }}>
-            <button style={{
-              width: '100%',
-              backgroundColor: 'var(--bg-surface)',
-              border: '1px solid var(--primary)',
-              color: 'var(--primary)',
-              borderRadius: '14px',
-              padding: '14px',
-              fontWeight: '600',
-              fontSize: '14px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              boxShadow: 'var(--shadow-sm)'
-            }}>
-              <Cpu size={18} />
-              Smart Tap Card Hub
-            </button>
-          </Link>
-
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '8px' }}>
             <Link href="/vendor" style={{ textDecoration: 'none' }}>
               <button style={{
