@@ -1,0 +1,26 @@
+{
+  "name": "Elite X",
+  "short_name": "Elite X",
+  "description": "Pre-order food from your campus canteen. Skip the queue, save time!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FC8019",
+  "orientation": "portrait",
+  "icons": [],
+  "categories": ["food", "shopping"],
+  "shortcuts": [
+    {
+      "name": "My Orders",
+      "short_name": "Orders",
+      "description": "View your order history",
+      "url": "/orders"
+    },
+    {
+      "name": "Cart",
+      "short_name": "Cart",
+      "description": "View your cart",
+      "url": "/cart"
+    }
+  ]
+}
