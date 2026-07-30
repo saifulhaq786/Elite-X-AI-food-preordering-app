@@ -73,7 +73,7 @@ export default function StudentWalletPage() {
           animate={{ opacity: 1, y: 0 }}
           onClick={() => router.push('/smart-card')}
           style={{
-            background: 'linear-gradient(135deg, #1F5067 0%, #15394A 100%)',
+            background: 'linear-gradient(135deg, #164E63 0%, #10B981 100%)',
             borderRadius: '24px',
             padding: '24px',
             boxShadow: 'var(--shadow-md)',
