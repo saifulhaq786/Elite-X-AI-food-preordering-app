@@ -5,9 +5,7 @@ import connectDB from '@/lib/mongodb';
 import Order from '@/models/Order';
 import User from '@/models/User';
 import QRCode from 'qrcode';
-
-// Mock in-memory orders store for when DB is offline
-const inMemoryOrders: Record<string, unknown>[] = [];
+import { getInMemoryOrders, addInMemoryOrder, type InMemoryOrder } from '@/lib/order-memory-store';
 
 function generateOrderNumber(): string {
   const prefixes = ['AP', 'MS', 'CK', 'TT', 'RK', 'CP', 'SH', 'GB'];
@@ -16,7 +14,7 @@ function generateOrderNumber(): string {
   return `${prefix}${number}`;
 }
 
-// GET /api/orders — Get orders for current user
+// GET /api/orders — Get orders for current user or vendor
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -24,50 +22,63 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const requestedVendorSlug = searchParams.get('vendorSlug') || searchParams.get('vendorId');
+
     try {
       await connectDB();
       const user = await User.findOne({ email: session.user.email.toLowerCase() });
-      if (user) {
-        const { searchParams } = new URL(request.url);
-        const vendorSlug = searchParams.get('vendorSlug');
 
-        let query: Record<string, unknown> = {};
-        if (user.role === 'vendor' && vendorSlug) {
-          query = { vendorSlug };
-        } else if (user.role === 'admin') {
-          if (vendorSlug) query = { vendorSlug };
-        } else {
-          query = { userId: user._id };
-        }
+      let query: Record<string, unknown> = {};
 
-        const orders = await Order.find(query).sort({ createdAt: -1 }).limit(50).lean();
-        if (orders.length > 0) {
-          const result = orders.map((o) => ({
-            id: o._id.toString(),
-            orderNumber: o.orderNumber,
-            userId: o.userId.toString(),
-            vendorId: o.vendorSlug,
-            vendorName: o.vendorName,
-            items: o.items,
-            status: o.status,
-            pickupType: o.pickupType,
-            pickupTime: o.pickupTime,
-            paymentMethod: o.paymentMethod,
-            total: o.total,
-            platformFee: o.platformFee,
-            parcelCharge: o.parcelCharge,
-            qrCode: o.qrCode,
-            createdAt: o.createdAt.toISOString(),
-            updatedAt: o.updatedAt.toISOString(),
-          }));
-          return NextResponse.json(result);
-        }
+      if (requestedVendorSlug) {
+        query = { vendorSlug: requestedVendorSlug };
+      } else if (user?.role === 'vendor') {
+        const vSlug = user.vendorSlug || (session.user as Record<string, unknown>).vendorSlug || 'campus-kitchen';
+        query = { vendorSlug: vSlug };
+      } else if (user?.role === 'admin') {
+        query = {}; // All orders for admin
+      } else if (user) {
+        query = { userId: user._id };
+      }
+
+      const orders = await Order.find(query).sort({ createdAt: -1 }).limit(50).lean();
+
+      if (orders.length > 0) {
+        const result = orders.map((o) => ({
+          id: o._id.toString(),
+          orderNumber: o.orderNumber,
+          userId: o.userId.toString(),
+          vendorId: o.vendorSlug,
+          vendorSlug: o.vendorSlug,
+          vendorName: o.vendorName,
+          items: o.items,
+          status: o.status,
+          pickupType: o.pickupType,
+          pickupTime: o.pickupTime,
+          paymentMethod: o.paymentMethod,
+          total: o.total,
+          platformFee: o.platformFee,
+          parcelCharge: o.parcelCharge,
+          qrCode: o.qrCode,
+          createdAt: o.createdAt.toISOString(),
+          updatedAt: o.updatedAt.toISOString(),
+        }));
+        return NextResponse.json(result);
       }
     } catch (dbErr) {
       console.warn('[API] GET /api/orders DB fallback:', dbErr);
     }
 
-    return NextResponse.json(inMemoryOrders);
+    const memoryOrders = getInMemoryOrders();
+    if (requestedVendorSlug) {
+      const filteredInMemory = memoryOrders.filter(
+        (o) => o.vendorId === requestedVendorSlug || o.vendorSlug === requestedVendorSlug
+      );
+      return NextResponse.json(filteredInMemory);
+    }
+
+    return NextResponse.json(memoryOrders);
   } catch (error) {
     console.error('[API] GET /api/orders error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -90,9 +101,8 @@ export async function POST(request: Request) {
     }
 
     const orderNum = generateOrderNumber();
-    const orderId = 'ord_' + Date.now();
+    const orderId = 'ord_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
 
-    // Generate QR code for this order
     let qrCode = '';
     try {
       const qrData = JSON.stringify({
@@ -108,11 +118,12 @@ export async function POST(request: Request) {
 
     const now = new Date().toISOString();
 
-    const newOrderResponse = {
+    const newOrderObj: InMemoryOrder = {
       id: orderId,
       orderNumber: orderNum,
       userId: 'u_101',
       vendorId: vendorSlug,
+      vendorSlug,
       vendorName,
       items,
       status: 'placed',
@@ -149,11 +160,12 @@ export async function POST(request: Request) {
 
         await User.findByIdAndUpdate(user._id, { $inc: { orderCount: 1 } });
 
-        const createdResult = {
+        const createdResult: InMemoryOrder = {
           id: dbOrder._id.toString(),
           orderNumber: dbOrder.orderNumber,
           userId: dbOrder.userId.toString(),
           vendorId: dbOrder.vendorSlug,
+          vendorSlug: dbOrder.vendorSlug,
           vendorName: dbOrder.vendorName,
           items: dbOrder.items,
           status: dbOrder.status,
@@ -168,15 +180,15 @@ export async function POST(request: Request) {
           updatedAt: dbOrder.updatedAt.toISOString(),
         };
 
-        inMemoryOrders.unshift(createdResult);
+        addInMemoryOrder(createdResult);
         return NextResponse.json(createdResult, { status: 201 });
       }
     } catch (dbErr) {
       console.warn('[API] POST /api/orders DB fallback:', dbErr);
     }
 
-    inMemoryOrders.unshift(newOrderResponse);
-    return NextResponse.json(newOrderResponse, { status: 201 });
+    addInMemoryOrder(newOrderObj);
+    return NextResponse.json(newOrderObj, { status: 201 });
   } catch (error) {
     console.error('[API] POST /api/orders error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

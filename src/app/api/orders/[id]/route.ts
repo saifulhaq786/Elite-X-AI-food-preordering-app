@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import connectDB from '@/lib/mongodb';
 import Order from '@/models/Order';
+import { findInMemoryOrder, updateInMemoryOrderStatus } from '@/lib/order-memory-store';
 
 // GET /api/orders/[id] — Get order details
 export async function GET(
@@ -26,6 +27,7 @@ export async function GET(
           orderNumber: order.orderNumber,
           userId: order.userId.toString(),
           vendorId: order.vendorSlug,
+          vendorSlug: order.vendorSlug,
           vendorName: order.vendorName,
           items: order.items,
           status: order.status,
@@ -44,15 +46,22 @@ export async function GET(
       console.warn('[API] GET /api/orders/[id] DB fallback:', dbErr);
     }
 
-    // Fallback response for order tracking page
+    // Check shared in-memory order store first!
+    const memoryOrder = findInMemoryOrder(id);
+    if (memoryOrder) {
+      return NextResponse.json(memoryOrder);
+    }
+
+    // Fallback response ONLY if ID is totally unknown
     return NextResponse.json({
       id: id || 'ord_demo_1',
       orderNumber: 'AP' + Math.floor(1000 + Math.random() * 9000),
       userId: 'u_101',
-      vendorId: 'tasty-times',
-      vendorName: 'Campus Canteen',
+      vendorId: 'campus-kitchen',
+      vendorSlug: 'campus-kitchen',
+      vendorName: 'Campus Kitchen',
       items: [{ itemId: 'item_1', name: 'Campus Meal', price: 150, quantity: 1, image: '', isVeg: true }],
-      status: 'preparing',
+      status: 'placed',
       pickupType: 'plate',
       pickupTime: '12:00 PM - 12:20 PM',
       paymentMethod: 'upi',
@@ -83,6 +92,9 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
     const { status } = body;
+
+    // Update in-memory order store
+    updateInMemoryOrderStatus(id, status);
 
     try {
       await connectDB();
