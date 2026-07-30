@@ -40,8 +40,13 @@ export const authOptions: NextAuthOptions = {
         const requestedRole = (credentials?.role as 'student' | 'vendor' | 'admin') || 'student';
 
         const isAdmin = ADMIN_EMAILS.includes(email);
-        const role = isAdmin ? 'admin' : requestedRole;
-        const fallbackSlug = role === 'vendor' ? 'tasty-times' : '';
+        const isVendorEmail = email.includes('vendor') || email.includes('kitchen') || email.includes('canteen') || requestedRole === 'vendor';
+        const role = isAdmin ? 'admin' : isVendorEmail ? 'vendor' : requestedRole;
+        
+        let resolvedVendorSlug = 'campus-kitchen';
+        if (email.includes('royal')) resolvedVendorSlug = 'royal-kitchen';
+        if (email.includes('tasty')) resolvedVendorSlug = 'tasty-times';
+        if (email.includes('campus')) resolvedVendorSlug = 'campus-kitchen';
 
         try {
           // Attempt fast DB connection with a 2.5s timeout
@@ -60,20 +65,20 @@ export const authOptions: NextAuthOptions = {
           } else {
             // Create user
             const hashedPassword = rawPassword ? await bcrypt.hash(rawPassword, 10) : '';
-            const name = role === 'vendor' ? 'Canteen Owner' : role === 'admin' ? 'Campus Admin' : email.split('@')[0];
+            const name = role === 'vendor' ? `${resolvedVendorSlug.replace('-', ' ').toUpperCase()} Owner` : role === 'admin' ? 'Campus Admin' : email.split('@')[0];
 
             dbUser = await User.create({
               name,
               email,
               password: hashedPassword,
               role,
-              vendorSlug: fallbackSlug,
+              vendorSlug: resolvedVendorSlug,
               college: 'Elite Tech Campus',
               walletBalance: role === 'admin' ? 5000 : 250,
             });
           }
 
-          let vendorSlug = dbUser.vendorSlug || fallbackSlug;
+          let vendorSlug = dbUser.vendorSlug || resolvedVendorSlug;
           if (dbUser.role === 'vendor' && !vendorSlug) {
             const vendor = await Vendor.findOne({ ownerId: email });
             if (vendor) vendorSlug = vendor.slug;
@@ -95,15 +100,14 @@ export const authOptions: NextAuthOptions = {
           }
           console.warn('[NextAuth] Fast login fallback activated:', err.message);
 
-          // Guaranteed instant fallback user object so 1-Click Fast Sign In never hangs!
           return {
             id: role === 'vendor' ? 'v_101' : role === 'admin' ? 'a_101' : 'u_101',
-            name: role === 'vendor' ? 'Tasty Times Owner' : role === 'admin' ? 'Campus Admin' : 'Campus Student',
+            name: role === 'vendor' ? 'Campus Kitchen Owner' : role === 'admin' ? 'Campus Admin' : 'Campus Student',
             email,
             image: '',
             role,
             college: 'Elite Tech Campus',
-            vendorSlug: role === 'vendor' ? 'tasty-times' : '',
+            vendorSlug: resolvedVendorSlug,
           };
         }
       },

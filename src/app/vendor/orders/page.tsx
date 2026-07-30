@@ -10,6 +10,7 @@ import {
   QrCode,
   Bell
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { fetchOrders, updateOrderStatus, type OrderData } from '@/lib/api-client';
 
 type OrderStatus = 'placed' | 'accepted' | 'preparing' | 'ready' | 'completed' | 'cancelled';
@@ -46,10 +47,11 @@ export default function VendorOrdersPage() {
   const [toastMessage, setToastMessage] = useState('Order updated!');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Default vendor ID for demo/logged-in vendor
-  const vendorId = 'tasty-times';
+  const { data: session } = useSession();
+  const sessionUser = session?.user as Record<string, unknown> | undefined;
+  const vendorId = (sessionUser?.vendorSlug as string) || 'campus-kitchen';
 
-  // Poll orders API for this vendor
+  // Poll orders API for this logged in vendor
   useEffect(() => {
     let isMounted = true;
     const loadOrders = async () => {
@@ -64,7 +66,7 @@ export default function VendorOrdersPage() {
     };
 
     loadOrders();
-    const interval = setInterval(loadOrders, 5000);
+    const interval = setInterval(loadOrders, 3000);
 
     return () => {
       isMounted = false;
