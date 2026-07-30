@@ -12,7 +12,7 @@ export default function NotificationsPage() {
     { id: '1', title: 'Your order is being prepared!', desc: 'Order AP0024 is now in the kitchen.', time: '2 min ago', icon: ChefHat, color: 'var(--primary)', read: false },
     { id: '2', title: 'Order AP0023 is ready for pickup!', desc: 'Head to the counter and show your QR code.', time: '15 min ago', icon: CheckCircle2, color: '#16A34A', read: true },
     { id: '3', title: 'Welcome Gift!', desc: 'Get a FREE juice on your first order above ₹149.', time: '1 hour ago', icon: Gift, color: 'var(--primary)', read: true },
-    { id: '4', title: 'Try ChowMe Premium', desc: 'Subscribe to ChowMe Premium for ₹29/month to unlock COD.', time: '2 hours ago', icon: Crown, color: 'var(--primary)', read: true },
+    { id: '4', title: 'Try Elite X Premium', desc: 'Subscribe to Elite X Premium for ₹29/month to unlock COD.', time: '2 hours ago', icon: Crown, color: 'var(--primary)', read: true },
     { id: '5', title: 'Refund Processed', desc: 'Refund of ₹180 has been credited to your wallet.', time: '1 day ago', icon: ArrowDownLeft, color: 'var(--primary)', read: true },
   ];
 

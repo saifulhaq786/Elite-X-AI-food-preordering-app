@@ -46,7 +46,7 @@ export default function HelpPage() {
           <a href="tel:+919876543210" style={{ flex: 1, textDecoration: 'none', backgroundColor: 'var(--primary)', color: '#FFF', padding: '14px', borderRadius: '16px', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: 'var(--shadow-colored)' }}>
             <PhoneCall size={18} /> Call Support
           </a>
-          <a href="mailto:support@chowme.in" style={{ flex: 1, textDecoration: 'none', backgroundColor: 'var(--bg-surface)', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '14px', borderRadius: '16px', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <a href="mailto:support@elitex.edu" style={{ flex: 1, textDecoration: 'none', backgroundColor: 'var(--bg-surface)', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '14px', borderRadius: '16px', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             <Mail size={18} /> Email Us
           </a>
         </div>

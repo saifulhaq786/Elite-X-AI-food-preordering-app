@@ -167,7 +167,7 @@ export default function SmartCardPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', zIndex: 5 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Cpu size={24} color="#FFF" />
-              <span style={{ fontWeight: '900', fontSize: '18px', color: '#FFF', letterSpacing: '0.5px' }}>ChowMe TAP</span>
+              <span style={{ fontWeight: '900', fontSize: '18px', color: '#FFF', letterSpacing: '0.5px' }}>Elite X TAP</span>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '4px 10px', borderRadius: '12px' }}>

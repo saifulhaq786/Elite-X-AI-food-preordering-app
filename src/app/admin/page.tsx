@@ -36,7 +36,7 @@ export default function AdminDashboard() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 8px 0', color: 'var(--text-primary)' }}>Platform Overview</h1>
-          <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.875rem' }}>Welcome back! Here&apos;s what&apos;s happening on ChowMe today.</p>
+          <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.875rem' }}>Welcome back! Here&apos;s what&apos;s happening on Elite X today.</p>
         </div>
       </div>
 

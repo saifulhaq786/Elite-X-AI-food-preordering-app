@@ -35,7 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Shield size={20} color="#FFF" />
           </div>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: '900', margin: 0, color: 'var(--text-primary)' }}>ChowMe Admin</h2>
+            <h2 style={{ fontSize: '18px', fontWeight: '900', margin: 0, color: 'var(--text-primary)' }}>Elite X Admin</h2>
             <span style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '700' }}>College Super Console</span>
           </div>
         </div>

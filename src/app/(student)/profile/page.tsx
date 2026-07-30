@@ -14,16 +14,15 @@ export default function ProfilePage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    const savedTheme = (localStorage.getItem('chowme_theme') as 'light' | 'dark') || 'light';
+    const savedTheme = (localStorage.getItem('elitex_theme') as 'light' | 'dark') || 'light';
     setTheme(savedTheme);
-    document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(nextTheme);
-    localStorage.setItem('chowme_theme', nextTheme);
-    document.documentElement.setAttribute('data-theme', nextTheme);
+    localStorage.setItem('elitex_theme', nextTheme);
+    document.documentElement.classList.toggle('dark-theme', nextTheme === 'dark');
   };
 
   const handleLogout = async () => {

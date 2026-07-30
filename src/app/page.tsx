@@ -59,7 +59,7 @@ export default function LandingPage() {
         >
           <Cpu size={28} color="var(--primary)" />
           <div style={{ textAlign: 'left' }}>
-            <span style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '1px', color: 'var(--text-primary)', display: 'block', lineHeight: 1.1 }}>CHOWME</span>
+            <span style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '1px', color: 'var(--text-primary)', display: 'block', lineHeight: 1.1 }}>ELITE X</span>
             <span style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>Campus Pre-Orders & Smart Tap</span>
           </div>
         </motion.div>
