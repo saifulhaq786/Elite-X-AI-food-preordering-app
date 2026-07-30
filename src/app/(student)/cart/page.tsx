@@ -141,90 +141,149 @@ export default function CartPage() {
           </div>
         )}
 
-        {/* Items List */}
+        {/* Multi-Vendor Order Notice */}
+        {(() => {
+          const uniqueVendors = Array.from(new Set(items.map((i) => i.vendorId || i.foodItem.vendorId || 'tasty-times')));
+          if (uniqueVendors.length <= 1) return null;
+          const vendorNamesMap: Record<string, string> = {
+            'royal-kitchen': 'Royal Kitchen',
+            'campus-kitchen': 'Campus Kitchen',
+            'tasty-times': 'Tasty Times',
+            'chai-point': 'Chai Point',
+            'shake-hub': 'Shake Hub',
+            'green-bowl': 'Green Bowl',
+          };
+          const names = uniqueVendors.map((v) => vendorNamesMap[v] || v);
+          return (
+            <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', border: '1px solid #3B82F6', borderRadius: '16px', padding: '14px', marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+              <span style={{ fontSize: '20px' }}>🏪</span>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: '800', color: '#1E40AF' }}>
+                  Multi-Canteen Order ({names.join(' & ')})
+                </div>
+                <div style={{ fontSize: '11px', color: '#1E3A8A', marginTop: '2px', lineHeight: '1.4' }}>
+                  Your checkout will generate <strong>{uniqueVendors.length} separate pickup tokens & QR codes</strong>. Collect food independently at each canteen without QR expiration conflicts!
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Items List Grouped by Vendor */}
         <AnimatePresence>
-          {items.map((item) => (
-            <motion.div
-              key={item.foodItem.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, height: 0 }}
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderRadius: '16px',
-                padding: '16px',
-                marginBottom: '12px',
-                border: '1px solid var(--border-light)',
-                boxShadow: 'var(--shadow-sm)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '50px', height: '50px', borderRadius: '12px', overflow: 'hidden', backgroundColor: 'var(--bg-elevated)' }}>
-                  {item.foodItem.image.startsWith('http') || item.foodItem.image.startsWith('/') ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={item.foodItem.image} alt={item.foodItem.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
-                      {item.foodItem.image}
-                    </div>
-                  )}
-                </div>
+          {(() => {
+            const vendorNamesMap: Record<string, string> = {
+              'royal-kitchen': 'Royal Kitchen',
+              'campus-kitchen': 'Campus Kitchen',
+              'tasty-times': 'Tasty Times',
+              'chai-point': 'Chai Point',
+              'shake-hub': 'Shake Hub',
+              'green-bowl': 'Green Bowl',
+            };
 
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '2px',
-                      border: `1.5px solid ${item.foodItem.isVeg ? '#16A34A' : '#DC2626'}`,
-                      position: 'relative',
-                      display: 'inline-block'
-                    }}>
-                      <span style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: '4px',
-                        height: '4px',
-                        borderRadius: '50%',
-                        backgroundColor: item.foodItem.isVeg ? '#16A34A' : '#DC2626'
-                      }} />
-                    </span>
-                    <span style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-primary)' }}>{item.foodItem.name}</span>
+            const vendorGroups = new Map<string, typeof items>();
+            for (const item of items) {
+              const vId = item.vendorId || item.foodItem.vendorId || 'tasty-times';
+              if (!vendorGroups.has(vId)) vendorGroups.set(vId, []);
+              vendorGroups.get(vId)!.push(item);
+            }
+
+            return Array.from(vendorGroups.entries()).map(([vId, vItems]) => (
+              <div key={vId} style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', padding: '0 4px' }}>
+                  <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    🏪 {vendorNamesMap[vId] || vId} ({vItems.length} {vItems.length === 1 ? 'item' : 'items'})
                   </div>
-                  <div style={{ fontWeight: '800', color: 'var(--primary)', fontSize: '14px', marginTop: '2px' }}>₹{item.foodItem.price}</div>
+                  <span style={{ fontSize: '10px', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-secondary)', padding: '2px 8px', borderRadius: '6px', fontWeight: '700' }}>
+                    Separate Token
+                  </span>
                 </div>
-              </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
-                <button
-                  onClick={() => removeItem(item.foodItem.id)}
-                  style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', padding: '4px' }}
-                >
-                  <Trash2 size={16} />
-                </button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: 'var(--bg-elevated)', padding: '4px 10px', borderRadius: '10px', border: '1px solid var(--border-medium)' }}>
-                  <button
-                    onClick={() => updateQuantity(item.foodItem.id, item.quantity - 1)}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                {vItems.map((item) => (
+                  <motion.div
+                    key={item.foodItem.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, height: 0 }}
+                    style={{
+                      backgroundColor: 'var(--bg-surface)',
+                      borderRadius: '16px',
+                      padding: '16px',
+                      marginBottom: '10px',
+                      border: '1px solid var(--border-light)',
+                      boxShadow: 'var(--shadow-sm)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
                   >
-                    <Minus size={14} />
-                  </button>
-                  <span style={{ fontWeight: '800', minWidth: '16px', textAlign: 'center', fontSize: '14px', color: 'var(--primary)' }}>{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.foodItem.id, item.quantity + 1)}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                  >
-                    <Plus size={14} />
-                  </button>
-                </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '50px', height: '50px', borderRadius: '12px', overflow: 'hidden', backgroundColor: 'var(--bg-elevated)' }}>
+                        {item.foodItem.image.startsWith('http') || item.foodItem.image.startsWith('/') ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={item.foodItem.image} alt={item.foodItem.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                            {item.foodItem.image}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{
+                            width: '10px',
+                            height: '10px',
+                            borderRadius: '2px',
+                            border: `1.5px solid ${item.foodItem.isVeg ? '#16A34A' : '#DC2626'}`,
+                            position: 'relative',
+                            display: 'inline-block'
+                          }}>
+                            <span style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: '4px',
+                              height: '4px',
+                              borderRadius: '50%',
+                              backgroundColor: item.foodItem.isVeg ? '#16A34A' : '#DC2626'
+                            }} />
+                          </span>
+                          <span style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-primary)' }}>{item.foodItem.name}</span>
+                        </div>
+                        <div style={{ fontWeight: '800', color: 'var(--primary)', fontSize: '14px', marginTop: '2px' }}>₹{item.foodItem.price}</div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
+                      <button
+                        onClick={() => removeItem(item.foodItem.id)}
+                        style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', padding: '4px' }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: 'var(--bg-elevated)', padding: '4px 10px', borderRadius: '10px', border: '1px solid var(--border-medium)' }}>
+                        <button
+                          onClick={() => updateQuantity(item.foodItem.id, item.quantity - 1)}
+                          style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span style={{ fontWeight: '800', minWidth: '16px', textAlign: 'center', fontSize: '14px', color: 'var(--primary)' }}>{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.foodItem.id, item.quantity + 1)}
+                          style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
-            </motion.div>
-          ))}
+            ));
+          })()}
         </AnimatePresence>
 
         {/* ML SMART CART RECOMMENDATIONS / PAIRINGS */}

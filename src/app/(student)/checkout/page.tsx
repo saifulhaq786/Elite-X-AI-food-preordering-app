@@ -15,7 +15,7 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const { items, clearCart } = useCartStore();
   const { user, deductSmartCardBalance } = useAuthStore();
-  const { placeOrder } = useOrderStore();
+  const { placeMultiVendorOrders } = useOrderStore();
 
   const pickupType = (searchParams?.get('type') as PickupType) || 'plate';
   const totalNum = parseFloat(searchParams?.get('total') || '0');
@@ -34,14 +34,15 @@ function CheckoutContent() {
     return slots.find(s => s.available)?.timeRange || '12:00 PM - 12:20 PM';
   });
 
+  const uniqueVendorIds = Array.from(new Set(items.map(i => i.vendorId || i.foodItem?.vendorId || 'tasty-times')));
+  const isMultiVendor = uniqueVendorIds.length > 1;
+
   const handlePlaceOrder = async () => {
     if (items.length === 0) {
       setErrorMsg('Your cart is empty');
       return;
     }
 
-    const vendorId = items[0].vendorId || 'tasty-times';
-    const vendorName = items[0].foodItem?.name ? 'Campus Canteen' : 'Tasty Times';
     const platformFee = 3;
     const parcelCharge = pickupType === 'parcel' ? 8 : 0;
     const grandTotal = totalNum > 0 ? totalNum : 150;
@@ -65,20 +66,21 @@ function CheckoutContent() {
           return;
         }
 
-        const newOrder = await placeOrder(
+        const createdOrders = await placeMultiVendorOrders(
           items,
-          vendorId,
-          vendorName,
           pickupType,
           selectedTime,
-          grandTotal,
           platformFee,
           parcelCharge,
           'smart_card'
         );
 
         clearCart();
-        router.push(`/order/${newOrder.id}`);
+        if (createdOrders.length > 1) {
+          router.push('/orders');
+        } else {
+          router.push(`/order/${createdOrders[0].id}`);
+        }
       } else if (selectedPayment === 'wallet') {
         // Inbuilt Wallet Payment Flow
         if (walletBalance < grandTotal) {
@@ -87,20 +89,21 @@ function CheckoutContent() {
           return;
         }
 
-        const newOrder = await placeOrder(
+        const createdOrders = await placeMultiVendorOrders(
           items,
-          vendorId,
-          vendorName,
           pickupType,
           selectedTime,
-          grandTotal,
           platformFee,
           parcelCharge,
           'wallet'
         );
 
         clearCart();
-        router.push(`/order/${newOrder.id}`);
+        if (createdOrders.length > 1) {
+          router.push('/orders');
+        } else {
+          router.push(`/order/${createdOrders[0].id}`);
+        }
       } else {
         // Online Razorpay Payment Flow (UPI / Cards / Wallets)
         await openRazorpayCheckout({
@@ -112,13 +115,10 @@ function CheckoutContent() {
           userPhone: user?.mobile,
           onSuccess: async (paymentId: string) => {
             try {
-              const newOrder = await placeOrder(
+              const createdOrders = await placeMultiVendorOrders(
                 items,
-                vendorId,
-                vendorName,
                 pickupType,
                 selectedTime,
-                grandTotal,
                 platformFee,
                 parcelCharge,
                 selectedPayment,
@@ -126,7 +126,11 @@ function CheckoutContent() {
               );
 
               clearCart();
-              router.push(`/order/${newOrder.id}`);
+              if (createdOrders.length > 1) {
+                router.push('/orders');
+              } else {
+                router.push(`/order/${createdOrders[0].id}`);
+              }
             } catch (err) {
               console.error('Order creation error after payment:', err);
               setErrorMsg('Payment succeeded but order creation failed. Contact support.');

@@ -88,6 +88,16 @@ interface OrderState {
     paymentId?: string,
   ) => Promise<Order>;
 
+  placeMultiVendorOrders: (
+    items: CartItem[],
+    pickupType: PickupType,
+    pickupTime: string | null,
+    platformFee: number,
+    parcelCharge: number,
+    paymentMethod?: string,
+    paymentId?: string,
+  ) => Promise<Order[]>;
+
   loadUserOrders: () => Promise<void>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
   cancelOrder: (orderId: string) => Promise<void>;
@@ -142,6 +152,75 @@ export const useOrderStore = create<OrderState>()(
         } catch (error) {
           set({ isLoading: false });
           console.error('Failed to place order:', error);
+          throw error;
+        }
+      },
+
+      placeMultiVendorOrders: async (items, pickupType, pickupTime, platformFee, parcelCharge, paymentMethod, paymentId) => {
+        set({ isLoading: true });
+
+        const vendorNamesMap: Record<string, string> = {
+          'royal-kitchen': 'Royal Kitchen',
+          'campus-kitchen': 'Campus Kitchen',
+          'tasty-times': 'Tasty Times',
+          'chai-point': 'Chai Point',
+          'shake-hub': 'Shake Hub',
+          'green-bowl': 'Green Bowl',
+        };
+
+        try {
+          // Group items by vendorId
+          const grouped = new Map<string, CartItem[]>();
+          for (const item of items) {
+            const vId = item.vendorId || item.foodItem?.vendorId || 'tasty-times';
+            if (!grouped.has(vId)) grouped.set(vId, []);
+            grouped.get(vId)!.push(item);
+          }
+
+          const createdOrders: Order[] = [];
+
+          for (const [vId, vItems] of grouped.entries()) {
+            const vName = vendorNamesMap[vId] || (vId.charAt(0).toUpperCase() + vId.slice(1).replace('-', ' '));
+            const subtotal = vItems.reduce((sum, i) => sum + i.foodItem.price * i.quantity, 0);
+            const pCharge = pickupType === 'parcel' ? parcelCharge : 0;
+            const vendorTotal = subtotal + pCharge + platformFee;
+
+            const orderItems = vItems.map((item) => ({
+              itemId: item.foodItem.id,
+              name: item.foodItem.name,
+              price: item.foodItem.price,
+              quantity: item.quantity,
+              image: item.foodItem.image,
+              isVeg: item.foodItem.isVeg,
+            }));
+
+            const orderData = await apiCreateOrder({
+              vendorSlug: vId,
+              vendorName: vName,
+              items: orderItems,
+              pickupType,
+              pickupTime,
+              paymentMethod: paymentMethod || 'smart_card',
+              paymentId: paymentId || '',
+              total: vendorTotal,
+              platformFee,
+              parcelCharge: pCharge,
+            });
+
+            const newOrder = orderDataToOrder(orderData);
+            createdOrders.push(newOrder);
+          }
+
+          set((state) => ({
+            orders: [...createdOrders, ...state.orders],
+            activeOrder: createdOrders[0] || null,
+            isLoading: false,
+          }));
+
+          return createdOrders;
+        } catch (error) {
+          set({ isLoading: false });
+          console.error('Failed to place multi-vendor orders:', error);
           throw error;
         }
       },
