@@ -55,9 +55,10 @@ export default function SmartCardPage() {
     }
   };
 
-  const handleFreezeToggle = () => {
-    toggleCardFreeze();
-    triggerToast(card.isFrozen ? 'Smart Card Unfrozen' : 'Smart Card Frozen for Security');
+  const handleFreezeToggle = async () => {
+    const willFreeze = !card.isFrozen;
+    await toggleCardFreeze();
+    triggerToast(willFreeze ? 'Smart Card Frozen for Security' : 'Smart Card Unfrozen & Active');
   };
 
   return (
