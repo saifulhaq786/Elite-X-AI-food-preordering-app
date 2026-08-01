@@ -10,9 +10,12 @@ import {
   Settings,
   LogOut,
   Shield,
-  Cpu
+  Cpu,
+  Sun,
+  Moon
 } from 'lucide-react';
 import Link from 'next/link';
+import { useTheme } from '@/components/ThemeProvider';
 
 const NAV_ITEMS = [
   { name: 'Home', path: '/admin', icon: LayoutDashboard },
@@ -26,6 +29,7 @@ const NAV_ITEMS = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
 
   const navContent = (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px', backgroundColor: 'var(--bg-surface)' }}>
@@ -140,8 +144,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'rgba(252, 128, 25, 0.1)', color: 'var(--primary)', padding: '4px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 800, border: '1px solid var(--primary)' }}>
-            <Cpu size={12} /> System Active
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={toggleTheme}
+              title="Toggle Light/Dark Theme"
+              style={{
+                backgroundColor: 'var(--bg-elevated)',
+                border: '1px solid var(--border-medium)',
+                color: 'var(--text-primary)',
+                padding: '6px 12px',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                fontWeight: '700',
+              }}
+            >
+              {theme === 'dark' ? <Sun size={15} color="#F59E0B" /> : <Moon size={15} color="var(--primary)" />}
+              <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-elevated)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800, border: '1px solid var(--primary)' }}>
+              <Cpu size={12} /> System Active
+            </div>
           </div>
         </header>
 

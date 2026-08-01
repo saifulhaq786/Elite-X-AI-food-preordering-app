@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Search, MapPin, Star, Flame, Cpu, Wifi, ChevronRight, Sparkles, Activity, Zap, Compass, Store } from 'lucide-react';
+import { Search, MapPin, Star, Flame, Cpu, Wifi, ChevronRight, Sparkles, Activity, Zap, Compass, Store, Sun, Moon } from 'lucide-react';
 import { vendors as localVendors, foodItems as localFoodItems } from '@/data/vendors';
 import { useAuthStore } from '@/store/auth-store';
+import { useTheme } from '@/components/ThemeProvider';
 import { fetchVendors, fetchVendorMenu, type VendorData, type MenuItemData } from '@/lib/api-client';
 import { getCanteenRushHeatmap, getBestTimeSlotRecommendation, type RushHourData } from '@/lib/ml-analytics';
 import CampusMap from '@/components/CampusMap';
@@ -31,6 +32,7 @@ const categories = [
 
 export default function StudentHomePage() {
   const { user } = useAuthStore();
+  const { theme, toggleTheme } = useTheme();
   const [activeBanner, setActiveBanner] = useState(0);
   const [activeCategory, setActiveCategory] = useState('All');
   const [dbVendors, setDbVendors] = useState<VendorData[]>([]);
@@ -132,26 +134,46 @@ export default function StudentHomePage() {
           </div>
         </div>
 
-        {/* Smart Tap Balance Pill */}
-        <Link href="/smart-card" style={{ textDecoration: 'none' }}>
-          <div style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-medium)',
-            borderRadius: '9999px',
-            padding: '6px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: 'var(--shadow-sm)'
-          }}>
-            <Wifi size={14} color="var(--primary)" style={{ transform: 'rotate(90deg)' }} />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '9px', color: 'var(--text-tertiary)', textTransform: 'uppercase', lineHeight: 1 }}>Smart Card</span>
-              <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--primary)' }}>₹{card.balance.toFixed(2)}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={toggleTheme}
+            title="Toggle Theme"
+            style={{
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border-medium)',
+              borderRadius: '9999px',
+              padding: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+          >
+            {theme === 'dark' ? <Sun size={18} color="#F59E0B" /> : <Moon size={18} color="var(--primary)" />}
+          </button>
+
+          {/* Smart Tap Balance Pill */}
+          <Link href="/smart-card" style={{ textDecoration: 'none' }}>
+            <div style={{
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border-medium)',
+              borderRadius: '9999px',
+              padding: '6px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              <Wifi size={14} color="var(--primary)" style={{ transform: 'rotate(90deg)' }} />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '9px', color: 'var(--text-tertiary)', textTransform: 'uppercase', lineHeight: 1 }}>Smart Card</span>
+                <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--primary)' }}>₹{card.balance.toFixed(2)}</span>
+              </div>
+              <ChevronRight size={14} color="var(--text-tertiary)" />
             </div>
-            <ChevronRight size={14} color="var(--text-tertiary)" />
-          </div>
-        </Link>
+          </Link>
+        </div>
       </header>
 
       {/* Swiggy Search Bar */}

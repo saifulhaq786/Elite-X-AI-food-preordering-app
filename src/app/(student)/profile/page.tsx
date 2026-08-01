@@ -8,22 +8,12 @@ import {
 import { signOut } from 'next-auth/react';
 import { useAuthStore } from '@/store/auth-store';
 
+import { useTheme } from '@/components/ThemeProvider';
+
 export default function ProfilePage() {
   const router = useRouter();
   const { user, clearUser } = useAuthStore();
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-  useEffect(() => {
-    const savedTheme = (localStorage.getItem('elitex_theme') as 'light' | 'dark') || 'light';
-    setTheme(savedTheme);
-  }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    localStorage.setItem('elitex_theme', nextTheme);
-    document.documentElement.classList.toggle('dark-theme', nextTheme === 'dark');
-  };
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = async () => {
     clearUser();

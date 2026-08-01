@@ -11,8 +11,11 @@ import {
   QrCode, 
   LogOut,
   Store,
-  User
+  User,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { useTheme } from '@/components/ThemeProvider';
 
 const navItems = [
   { name: 'Dashboard', href: '/vendor', icon: LayoutDashboard },
@@ -26,6 +29,7 @@ const navItems = [
 export default function VendorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
 
   const navContent = (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px', background: 'var(--bg-surface)' }}>
@@ -135,8 +139,31 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
             </div>
           </div>
 
-          <div style={{ backgroundColor: 'var(--primary)', color: '#FFF', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
-            ● Accepting Orders
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={toggleTheme}
+              title="Toggle Light/Dark Theme"
+              style={{
+                backgroundColor: 'var(--bg-elevated)',
+                border: '1px solid var(--border-medium)',
+                color: 'var(--text-primary)',
+                padding: '6px 12px',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                fontWeight: '700',
+              }}
+            >
+              {theme === 'dark' ? <Sun size={15} color="#F59E0B" /> : <Moon size={15} color="var(--primary)" />}
+              <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+            </button>
+
+            <div style={{ backgroundColor: 'var(--primary)', color: '#FFF', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
+              ● Accepting Orders
+            </div>
           </div>
         </header>
 
